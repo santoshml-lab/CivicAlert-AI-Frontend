@@ -46,9 +46,7 @@ function App() {
   ).length;
 
   const uniqueLocations = new Set(
-    issues
-      .map((issue) => issue.location)
-      .filter(Boolean)
+    issues.map((issue) => issue.location).filter(Boolean)
   ).size;
 
   const latestIssue = issues.length > 0 ? issues[0] : null;
@@ -123,9 +121,7 @@ function App() {
                 </div>
               </div>
 
-              {/* STATS */}
               <div className="stats-grid">
-
                 <div className="stat-card">
                   <span>Total Issues</span>
 
@@ -157,12 +153,9 @@ function App() {
                     {loading ? "..." : uniqueLocations}
                   </strong>
                 </div>
-
               </div>
 
-              {/* RECENT ISSUES */}
               <section className="content-card">
-
                 <div className="card-header">
                   <div>
                     <h2>Recent Community Issues</h2>
@@ -195,14 +188,14 @@ function App() {
 
                 {!loading && !error && latestIssue && (
                   <div className="issue-row">
-
                     <div>
                       <h3>
                         {latestIssue.title}
                       </h3>
 
                       <p>
-                        {latestIssue.location || "Location not provided"}
+                        {latestIssue.location ||
+                          "Location not provided"}
                       </p>
                     </div>
 
@@ -213,224 +206,278 @@ function App() {
                     >
                       {latestIssue.severity || "Unknown"}
                     </span>
-
                   </div>
                 )}
-
               </section>
             </>
           )}
 
           {/* REPORT ISSUE */}
           {activePage === "report" && (
-  <section className="content-card">
-    <h1>Report an Issue</h1>
+            <section className="content-card">
+              <h1>Report an Issue</h1>
 
-    <p>
-      Submit a community problem for AI-powered analysis.
-    </p>
+              <p>
+                Submit a community problem for AI-powered analysis.
+              </p>
 
-    <form
-      onSubmit={async (event) => {
-        <div>
-  <label>Issue Photo</label>
+              <form
+                onSubmit={async (event) => {
+                  event.preventDefault();
 
-  <input
-    type="file"
-    name="photo"
-    accept="image/*"
-    style={{
-      width: "100%",
-      marginTop: "8px",
-      padding: "12px",
-      borderRadius: "8px",
-      border: "1px solid #334155",
-      background: "#0f172a",
-      color: "#cbd5e1",
-    }}
-  />
-</div>
-        event.preventDefault();
+                  const formData = new FormData(event.target);
 
-        const formData = new FormData(event.target);
+                  const issue = {
+                    title: formData.get("title"),
+                    description: formData.get("description"),
+                    category: formData.get("category"),
+                    severity: formData.get("severity"),
+                    location: formData.get("location"),
+                  };
 
-        const issue = {
-          title: formData.get("title"),
-          description: formData.get("description"),
-          category: formData.get("category"),
-          severity: formData.get("severity"),
-          location: formData.get("location"),
-        };
+                  try {
+                    const response = await fetch(
+                      `${API_URL}/issues`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(issue),
+                      }
+                    );
 
-        try {
-          const response = await fetch(`${API_URL}/issues`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(issue),
-          });
+                    if (!response.ok) {
+                      throw new Error(
+                        "Failed to submit issue"
+                      );
+                    }
 
-          if (!response.ok) {
-            throw new Error("Failed to submit issue");
-          }
+                    alert(
+                      "Issue reported successfully!"
+                    );
 
-          alert("Issue reported successfully!");
+                    event.target.reset();
 
-          event.target.reset();
+                    const refreshedResponse =
+                      await fetch(`${API_URL}/issues`);
 
-          const refreshedResponse = await fetch(
-            `${API_URL}/issues`
-          );
+                    const refreshedData =
+                      await refreshedResponse.json();
 
-          const refreshedData = await refreshedResponse.json();
+                    setIssues(
+                      refreshedData.issues || []
+                    );
 
-          setIssues(refreshedData.issues || []);
+                    setActivePage("dashboard");
+                  } catch (error) {
+                    console.error(
+                      "Failed to submit issue:",
+                      error
+                    );
 
-          setActivePage("dashboard");
-        } catch (error) {
-          console.error("Failed to submit issue:", error);
+                    alert(
+                      "Unable to report issue. Please try again."
+                    );
+                  }
+                }}
+                style={{
+                  marginTop: "24px",
+                  display: "grid",
+                  gap: "18px",
+                }}
+              >
 
-          alert("Unable to report issue. Please try again.");
-        }
-      }}
-      style={{
-        marginTop: "24px",
-        display: "grid",
-        gap: "18px",
-      }}
-    >
-      <div>
-        <label>Issue Title</label>
+                {/* ISSUE PHOTO */}
+                <div>
+                  <label>Issue Photo</label>
 
-        <input
-          type="text"
-          name="title"
-          placeholder="Example: Large pothole on main road"
-          required
-          style={{
-            width: "100%",
-            marginTop: "8px",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #334155",
-            background: "#0f172a",
-            color: "#f8fafc",
-          }}
-        />
-      </div>
+                  <input
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      background: "#0f172a",
+                      color: "#cbd5e1",
+                    }}
+                  />
+                </div>
 
-      <div>
-        <label>Description</label>
+                {/* TITLE */}
+                <div>
+                  <label>Issue Title</label>
 
-        <textarea
-          name="description"
-          placeholder="Describe the community issue..."
-          rows="5"
-          required
-          style={{
-            width: "100%",
-            marginTop: "8px",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #334155",
-            background: "#0f172a",
-            color: "#f8fafc",
-            resize: "vertical",
-          }}
-        />
-      </div>
+                  <input
+                    type="text"
+                    name="title"
+                    placeholder="Example: Large pothole on main road"
+                    required
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      background: "#0f172a",
+                      color: "#f8fafc",
+                    }}
+                  />
+                </div>
 
-      <div>
-        <label>Category</label>
+                {/* DESCRIPTION */}
+                <div>
+                  <label>Description</label>
 
-        <select
-          name="category"
-          required
-          style={{
-            width: "100%",
-            marginTop: "8px",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #334155",
-            background: "#0f172a",
-            color: "#f8fafc",
-          }}
-        >
-          <option value="">Select category</option>
-          <option value="road">Road</option>
-          <option value="garbage">Garbage</option>
-          <option value="water">Water</option>
-          <option value="electricity">Electricity</option>
-          <option value="streetlight">Streetlight</option>
-          <option value="drainage">Drainage</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+                  <textarea
+                    name="description"
+                    placeholder="Describe the community issue..."
+                    rows="5"
+                    required
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      background: "#0f172a",
+                      color: "#f8fafc",
+                      resize: "vertical",
+                    }}
+                  />
+                </div>
 
-      <div>
-        <label>Severity</label>
+                {/* CATEGORY */}
+                <div>
+                  <label>Category</label>
 
-        <select
-          name="severity"
-          required
-          style={{
-            width: "100%",
-            marginTop: "8px",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #334155",
-            background: "#0f172a",
-            color: "#f8fafc",
-          }}
-        >
-          <option value="">Select severity</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
+                  <select
+                    name="category"
+                    required
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      background: "#0f172a",
+                      color: "#f8fafc",
+                    }}
+                  >
+                    <option value="">
+                      Select category
+                    </option>
 
-      <div>
-        <label>Location</label>
+                    <option value="road">
+                      Road
+                    </option>
 
-        <input
-          type="text"
-          name="location"
-          placeholder="Example: Main Road"
-          required
-          style={{
-            width: "100%",
-            marginTop: "8px",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #334155",
-            background: "#0f172a",
-            color: "#f8fafc",
-          }}
-        />
-      </div>
+                    <option value="garbage">
+                      Garbage
+                    </option>
 
-      <button
-        type="submit"
-        style={{
-          padding: "13px 20px",
-          border: "none",
-          borderRadius: "9px",
-          background: "linear-gradient(135deg, #2563eb, #06b6d4)",
-          color: "#ffffff",
-          fontWeight: "600",
-          cursor: "pointer",
-        }}
-      >
-        Submit Issue
-      </button>
-    </form>
-  </section>
-)}
-            
-            
-              
+                    <option value="water">
+                      Water
+                    </option>
+
+                    <option value="electricity">
+                      Electricity
+                    </option>
+
+                    <option value="streetlight">
+                      Streetlight
+                    </option>
+
+                    <option value="drainage">
+                      Drainage
+                    </option>
+
+                    <option value="other">
+                      Other
+                    </option>
+                  </select>
+                </div>
+
+                {/* SEVERITY */}
+                <div>
+                  <label>Severity</label>
+
+                  <select
+                    name="severity"
+                    required
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      background: "#0f172a",
+                      color: "#f8fafc",
+                    }}
+                  >
+                    <option value="">
+                      Select severity
+                    </option>
+
+                    <option value="low">
+                      Low
+                    </option>
+
+                    <option value="medium">
+                      Medium
+                    </option>
+
+                    <option value="high">
+                      High
+                    </option>
+                  </select>
+                </div>
+
+                {/* LOCATION */}
+                <div>
+                  <label>Location</label>
+
+                  <input
+                    type="text"
+                    name="location"
+                    placeholder="Example: Main Road"
+                    required
+                    style={{
+                      width: "100%",
+                      marginTop: "8px",
+                      padding: "12px",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      background: "#0f172a",
+                      color: "#f8fafc",
+                    }}
+                  />
+                </div>
+
+                {/* SUBMIT */}
+                <button
+                  type="submit"
+                  style={{
+                    padding: "13px 20px",
+                    border: "none",
+                    borderRadius: "9px",
+                    background:
+                      "linear-gradient(135deg, #2563eb, #06b6d4)",
+                    color: "#ffffff",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  Submit Issue
+                </button>
+
+              </form>
+            </section>
+          )}
 
           {/* ISSUES */}
           {activePage === "issues" && (
@@ -447,13 +494,18 @@ function App() {
                     <div
                       className="issue-row"
                       key={issue.id}
-                      style={{ marginBottom: "12px" }}
+                      style={{
+                        marginBottom: "12px",
+                      }}
                     >
                       <div>
-                        <h3>{issue.title}</h3>
+                        <h3>
+                          {issue.title}
+                        </h3>
 
                         <p>
-                          {issue.location || "Location not provided"}
+                          {issue.location ||
+                            "Location not provided"}
                         </p>
                       </div>
 
@@ -462,7 +514,8 @@ function App() {
                           issue.severity?.toLowerCase() || ""
                         }`}
                       >
-                        {issue.severity || "Unknown"}
+                        {issue.severity ||
+                          "Unknown"}
                       </span>
                     </div>
                   ))}
