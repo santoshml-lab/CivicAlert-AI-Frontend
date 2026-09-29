@@ -232,6 +232,24 @@ function App() {
 
     <form
       onSubmit={async (event) => {
+        <div>
+  <label>Issue Photo</label>
+
+  <input
+    type="file"
+    name="photo"
+    accept="image/*"
+    style={{
+      width: "100%",
+      marginTop: "8px",
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #334155",
+      background: "#0f172a",
+      color: "#cbd5e1",
+    }}
+  />
+</div>
         event.preventDefault();
 
         const formData = new FormData(event.target);
