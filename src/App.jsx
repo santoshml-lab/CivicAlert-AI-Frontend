@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   FileText,
@@ -9,6 +9,21 @@ import {
 
 function App() {
   const [activePage, setActivePage] = useState("dashboard");
+  const [issues, setIssues] = useState([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  fetch("https://civicalert-ai.onrender.com/issues")
+    .then((response) => response.json())
+    .then((data) => {
+      setIssues(data.issues || []);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error("Failed to fetch issues:", error);
+      setLoading(false);
+    });
+}, []);
 
   return (
     <div className="app">
