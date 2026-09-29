@@ -223,14 +223,196 @@ function App() {
 
           {/* REPORT ISSUE */}
           {activePage === "report" && (
-            <section className="content-card">
-              <h1>Report an Issue</h1>
+  <section className="content-card">
+    <h1>Report an Issue</h1>
 
-              <p>
-                Upload a photo and describe a community problem.
-              </p>
-            </section>
-          )}
+    <p>
+      Submit a community problem for AI-powered analysis.
+    </p>
+
+    <form
+      onSubmit={async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+
+        const issue = {
+          title: formData.get("title"),
+          description: formData.get("description"),
+          category: formData.get("category"),
+          severity: formData.get("severity"),
+          location: formData.get("location"),
+        };
+
+        try {
+          const response = await fetch(`${API_URL}/issues`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(issue),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to submit issue");
+          }
+
+          alert("Issue reported successfully!");
+
+          event.target.reset();
+
+          const refreshedResponse = await fetch(
+            `${API_URL}/issues`
+          );
+
+          const refreshedData = await refreshedResponse.json();
+
+          setIssues(refreshedData.issues || []);
+
+          setActivePage("dashboard");
+        } catch (error) {
+          console.error("Failed to submit issue:", error);
+
+          alert("Unable to report issue. Please try again.");
+        }
+      }}
+      style={{
+        marginTop: "24px",
+        display: "grid",
+        gap: "18px",
+      }}
+    >
+      <div>
+        <label>Issue Title</label>
+
+        <input
+          type="text"
+          name="title"
+          placeholder="Example: Large pothole on main road"
+          required
+          style={{
+            width: "100%",
+            marginTop: "8px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #334155",
+            background: "#0f172a",
+            color: "#f8fafc",
+          }}
+        />
+      </div>
+
+      <div>
+        <label>Description</label>
+
+        <textarea
+          name="description"
+          placeholder="Describe the community issue..."
+          rows="5"
+          required
+          style={{
+            width: "100%",
+            marginTop: "8px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #334155",
+            background: "#0f172a",
+            color: "#f8fafc",
+            resize: "vertical",
+          }}
+        />
+      </div>
+
+      <div>
+        <label>Category</label>
+
+        <select
+          name="category"
+          required
+          style={{
+            width: "100%",
+            marginTop: "8px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #334155",
+            background: "#0f172a",
+            color: "#f8fafc",
+          }}
+        >
+          <option value="">Select category</option>
+          <option value="road">Road</option>
+          <option value="garbage">Garbage</option>
+          <option value="water">Water</option>
+          <option value="electricity">Electricity</option>
+          <option value="streetlight">Streetlight</option>
+          <option value="drainage">Drainage</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Severity</label>
+
+        <select
+          name="severity"
+          required
+          style={{
+            width: "100%",
+            marginTop: "8px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #334155",
+            background: "#0f172a",
+            color: "#f8fafc",
+          }}
+        >
+          <option value="">Select severity</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Location</label>
+
+        <input
+          type="text"
+          name="location"
+          placeholder="Example: Main Road"
+          required
+          style={{
+            width: "100%",
+            marginTop: "8px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #334155",
+            background: "#0f172a",
+            color: "#f8fafc",
+          }}
+        />
+      </div>
+
+      <button
+        type="submit"
+        style={{
+          padding: "13px 20px",
+          border: "none",
+          borderRadius: "9px",
+          background: "linear-gradient(135deg, #2563eb, #06b6d4)",
+          color: "#ffffff",
+          fontWeight: "600",
+          cursor: "pointer",
+        }}
+      >
+        Submit Issue
+      </button>
+    </form>
+  </section>
+)}
+            
+            
+              
 
           {/* ISSUES */}
           {activePage === "issues" && (
