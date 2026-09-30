@@ -472,43 +472,107 @@ function App() {
               </div>
 
               {/* =================================
-                  CATEGORY ANALYTICS
-              ================================= */}
+    CATEGORY ANALYTICS
+================================= */}
 
-              <div
+<section
+  className="content-card"
+  style={{
+    marginTop: "24px",
+  }}
+>
+  <div className="card-header">
+    <div>
+      <h2>Issue Categories</h2>
+
+      <p>
+        Distribution of reported community issues
+      </p>
+    </div>
+  </div>
+
+  <div
+    style={{
+      marginTop: "20px",
+      display: "grid",
+      gap: "18px",
+    }}
+  >
+    {Object.entries(categoryCounts).map(
+      ([category, count]) => {
+        const percentage =
+          totalIssues > 0
+            ? Math.round(
+                (count / totalIssues) * 100
+              )
+            : 0;
+
+        return (
+          <div key={category}>
+            {/* Category name + count */}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "8px",
+              }}
+            >
+              <span
                 style={{
-                  marginTop: "24px",
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
+                  color: "#cbd5e1",
+                  fontWeight: "600",
+                  textTransform: "capitalize",
                 }}
               >
+                {category}
+              </span>
 
-                {Object.entries(
-                  categoryCounts
-                ).map(
-                  ([category, count]) => (
-                    <div
-                      key={category}
-                      className="stat-card"
-                      style={{
-                        minWidth: "160px",
-                      }}
-                    >
+              <span
+                style={{
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                }}
+              >
+                {count} issue
+                {count !== 1 ? "s" : ""} ·{" "}
+                {percentage}%
+              </span>
+            </div>
 
-                      <span>
-                        {category}
-                      </span>
+            {/* Progress bar */}
 
-                      <strong>
-                        {count}
-                      </strong>
-
-                    </div>
-                  )
-                )}
-
-              </div>
+            <div
+              style={{
+                width: "100%",
+                height: "10px",
+                borderRadius: "999px",
+                background: "#1e293b",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${percentage}%`,
+                  height: "100%",
+                  borderRadius: "999px",
+                  background:
+                    "linear-gradient(90deg, #2563eb, #06b6d4)",
+                  transition:
+                    "width 0.5s ease",
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
+    )}
+  </div>
+</section>
+                   
+              
+         
 
               {/* =================================
                   RECENT ISSUES
