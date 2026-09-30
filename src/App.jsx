@@ -15,6 +15,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+
   useEffect(() => {
     fetch(`${API_URL}/issues`)
       .then((response) => {
@@ -51,9 +55,54 @@ function App() {
 
   const latestIssue = issues.length > 0 ? issues[0] : null;
 
+  const handlePhotoUpload = async (event) => {
+    event.preventDefault();
+
+    if (!selectedFile) {
+      setUploadMessage("Please select an image first.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadMessage("");
+
+    try {
+      const formData = new FormData();
+
+      formData.append("file", selectedFile);
+
+      const response = await fetch(
+        `${API_URL}/upload-photo`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Photo upload failed");
+      }
+
+      const data = await response.json();
+
+      console.log("Upload response:", data);
+
+      setUploadMessage(
+        `Photo received successfully: ${data.filename}`
+      );
+    } catch (error) {
+      console.error("Photo upload error:", error);
+
+      setUploadMessage(
+        "Unable to upload photo. Please try again."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="app">
-      {/* TOPBAR */}
       <header className="topbar">
         <div className="brand">
           <AlertTriangle size={28} />
@@ -66,7 +115,6 @@ function App() {
       </header>
 
       <div className="layout">
-        {/* SIDEBAR */}
         <aside className="sidebar">
           <button
             className={
@@ -105,16 +153,12 @@ function App() {
           </button>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className="main-content">
-
-          {/* DASHBOARD */}
           {activePage === "dashboard" && (
             <>
               <div className="page-header">
                 <div>
                   <h1>Community Dashboard</h1>
-
                   <p>
                     Monitor and understand local community issues.
                   </p>
@@ -124,7 +168,6 @@ function App() {
               <div className="stats-grid">
                 <div className="stat-card">
                   <span>Total Issues</span>
-
                   <strong>
                     {loading ? "..." : totalIssues}
                   </strong>
@@ -132,7 +175,6 @@ function App() {
 
                 <div className="stat-card">
                   <span>High Severity</span>
-
                   <strong>
                     {loading ? "..." : highSeverityIssues}
                   </strong>
@@ -140,7 +182,6 @@ function App() {
 
                 <div className="stat-card">
                   <span>Pending</span>
-
                   <strong>
                     {loading ? "..." : pendingIssues}
                   </strong>
@@ -148,7 +189,6 @@ function App() {
 
                 <div className="stat-card">
                   <span>Locations</span>
-
                   <strong>
                     {loading ? "..." : uniqueLocations}
                   </strong>
@@ -159,7 +199,6 @@ function App() {
                 <div className="card-header">
                   <div>
                     <h2>Recent Community Issues</h2>
-
                     <p>
                       Latest reported problems
                     </p>
@@ -175,9 +214,7 @@ function App() {
                 )}
 
                 {!loading && error && (
-                  <p>
-                    {error}
-                  </p>
+                  <p>{error}</p>
                 )}
 
                 {!loading && !error && !latestIssue && (
@@ -212,7 +249,6 @@ function App() {
             </>
           )}
 
-          {/* REPORT ISSUE */}
           {activePage === "report" && (
             <section className="content-card">
               <h1>Report an Issue</h1>
@@ -222,73 +258,13 @@ function App() {
               </p>
 
               <form
-                onSubmit={async (event) => {
-                  event.preventDefault();
-
-                  const formData = new FormData(event.target);
-
-                  const issue = {
-                    title: formData.get("title"),
-                    description: formData.get("description"),
-                    category: formData.get("category"),
-                    severity: formData.get("severity"),
-                    location: formData.get("location"),
-                  };
-
-                  try {
-                    const response = await fetch(
-                      `${API_URL}/issues`,
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(issue),
-                      }
-                    );
-
-                    if (!response.ok) {
-                      throw new Error(
-                        "Failed to submit issue"
-                      );
-                    }
-
-                    alert(
-                      "Issue reported successfully!"
-                    );
-
-                    event.target.reset();
-
-                    const refreshedResponse =
-                      await fetch(`${API_URL}/issues`);
-
-                    const refreshedData =
-                      await refreshedResponse.json();
-
-                    setIssues(
-                      refreshedData.issues || []
-                    );
-
-                    setActivePage("dashboard");
-                  } catch (error) {
-                    console.error(
-                      "Failed to submit issue:",
-                      error
-                    );
-
-                    alert(
-                      "Unable to report issue. Please try again."
-                    );
-                  }
-                }}
+                onSubmit={handlePhotoUpload}
                 style={{
                   marginTop: "24px",
                   display: "grid",
                   gap: "18px",
                 }}
               >
-
-                {/* ISSUE PHOTO */}
                 <div>
                   <label>Issue Photo</label>
 
@@ -296,6 +272,14 @@ function App() {
                     type="file"
                     name="photo"
                     accept="image/*"
+                    required
+                    onChange={(event) => {
+                      setSelectedFile(
+                        event.target.files[0]
+                      );
+
+                      setUploadMessage("");
+                    }}
                     style={{
                       width: "100%",
                       marginTop: "8px",
@@ -308,159 +292,20 @@ function App() {
                   />
                 </div>
 
-                {/* TITLE */}
-                <div>
-                  <label>Issue Title</label>
-
-                  <input
-                    type="text"
-                    name="title"
-                    placeholder="Example: Large pothole on main road"
-                    required
+                {selectedFile && (
+                  <p
                     style={{
-                      width: "100%",
-                      marginTop: "8px",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      background: "#0f172a",
-                      color: "#f8fafc",
-                    }}
-                  />
-                </div>
-
-                {/* DESCRIPTION */}
-                <div>
-                  <label>Description</label>
-
-                  <textarea
-                    name="description"
-                    placeholder="Describe the community issue..."
-                    rows="5"
-                    required
-                    style={{
-                      width: "100%",
-                      marginTop: "8px",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      background: "#0f172a",
-                      color: "#f8fafc",
-                      resize: "vertical",
-                    }}
-                  />
-                </div>
-
-                {/* CATEGORY */}
-                <div>
-                  <label>Category</label>
-
-                  <select
-                    name="category"
-                    required
-                    style={{
-                      width: "100%",
-                      marginTop: "8px",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      background: "#0f172a",
-                      color: "#f8fafc",
+                      color: "#94a3b8",
+                      fontSize: "14px",
                     }}
                   >
-                    <option value="">
-                      Select category
-                    </option>
+                    Selected: {selectedFile.name}
+                  </p>
+                )}
 
-                    <option value="road">
-                      Road
-                    </option>
-
-                    <option value="garbage">
-                      Garbage
-                    </option>
-
-                    <option value="water">
-                      Water
-                    </option>
-
-                    <option value="electricity">
-                      Electricity
-                    </option>
-
-                    <option value="streetlight">
-                      Streetlight
-                    </option>
-
-                    <option value="drainage">
-                      Drainage
-                    </option>
-
-                    <option value="other">
-                      Other
-                    </option>
-                  </select>
-                </div>
-
-                {/* SEVERITY */}
-                <div>
-                  <label>Severity</label>
-
-                  <select
-                    name="severity"
-                    required
-                    style={{
-                      width: "100%",
-                      marginTop: "8px",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      background: "#0f172a",
-                      color: "#f8fafc",
-                    }}
-                  >
-                    <option value="">
-                      Select severity
-                    </option>
-
-                    <option value="low">
-                      Low
-                    </option>
-
-                    <option value="medium">
-                      Medium
-                    </option>
-
-                    <option value="high">
-                      High
-                    </option>
-                  </select>
-                </div>
-
-                {/* LOCATION */}
-                <div>
-                  <label>Location</label>
-
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Example: Main Road"
-                    required
-                    style={{
-                      width: "100%",
-                      marginTop: "8px",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      background: "#0f172a",
-                      color: "#f8fafc",
-                    }}
-                  />
-                </div>
-
-                {/* SUBMIT */}
                 <button
                   type="submit"
+                  disabled={uploading}
                   style={{
                     padding: "13px 20px",
                     border: "none",
@@ -469,17 +314,31 @@ function App() {
                       "linear-gradient(135deg, #2563eb, #06b6d4)",
                     color: "#ffffff",
                     fontWeight: "600",
-                    cursor: "pointer",
+                    cursor: uploading
+                      ? "not-allowed"
+                      : "pointer",
+                    opacity: uploading ? 0.7 : 1,
                   }}
                 >
-                  Submit Issue
+                  {uploading
+                    ? "Uploading..."
+                    : "Upload Photo"}
                 </button>
 
+                {uploadMessage && (
+                  <p
+                    style={{
+                      color: "#67e8f9",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {uploadMessage}
+                  </p>
+                )}
               </form>
             </section>
           )}
 
-          {/* ISSUES */}
           {activePage === "issues" && (
             <section className="content-card">
               <h1>Community Issues</h1>
@@ -499,9 +358,7 @@ function App() {
                       }}
                     >
                       <div>
-                        <h3>
-                          {issue.title}
-                        </h3>
+                        <h3>{issue.title}</h3>
 
                         <p>
                           {issue.location ||
@@ -514,8 +371,7 @@ function App() {
                           issue.severity?.toLowerCase() || ""
                         }`}
                       >
-                        {issue.severity ||
-                          "Unknown"}
+                        {issue.severity || "Unknown"}
                       </span>
                     </div>
                   ))}
@@ -529,7 +385,6 @@ function App() {
               )}
             </section>
           )}
-
         </main>
       </div>
     </div>
