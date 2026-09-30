@@ -13,6 +13,9 @@ function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [severityFilter, setSeverityFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [error, setError] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -20,6 +23,7 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
+  
 
   useEffect(() => {
     fetchIssues();
@@ -46,6 +50,23 @@ function App() {
       setLoading(false);
     }
   };
+
+  const filteredIssues = issues.filter((issue) => {
+  const matchesSearch =
+    issue.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    issue.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    issue.category?.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const matchesSeverity =
+    severityFilter === "all" ||
+    issue.severity?.toLowerCase() === severityFilter;
+
+  const matchesStatus =
+    statusFilter === "all" ||
+    issue.status?.toLowerCase() === statusFilter;
+
+  return matchesSearch && matchesSeverity && matchesStatus;
+});
 
   const totalIssues = issues.length;
 
