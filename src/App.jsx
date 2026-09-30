@@ -26,6 +26,8 @@ function App() {
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
   const [priorityResult, setPriorityResult] = useState(null);
+  const [duplicateResult, setDuplicateResult] =
+  useState(null);
 
   const [complaint, setComplaint] = useState(null);
   const [generatingComplaint, setGeneratingComplaint] =
@@ -264,6 +266,7 @@ function App() {
       setComplaint(null);
       setComplaintMessage("");
       setPriorityResult(null);
+      setDuplicateResult(null);
 
       try {
         // ======================================
@@ -391,9 +394,57 @@ setPriorityResult(
   priorityData
 );
 
-setUploadMessage(
-  "Photo analyzed and priority calculated successfully."
+// ======================================
+// STEP 4: Check duplicate issue
+// ======================================
+
+const duplicateResponse =
+  await fetch(
+    `${API_URL}/check-duplicate?category=${encodeURIComponent(
+      analyzeData.analysis.category
+    )}&location=${encodeURIComponent(
+      location.trim()
+    )}&title=${encodeURIComponent(
+      analyzeData.analysis.issue
+    )}`
+  );
+
+if (!duplicateResponse.ok) {
+  throw new Error(
+    "Duplicate check failed"
+  );
+}
+
+const duplicateData =
+  await duplicateResponse.json();
+
+console.log(
+  "Duplicate intelligence:",
+  duplicateData
 );
+
+if (
+  duplicateData.status !==
+  "success"
+) {
+  throw new Error(
+    "Duplicate check failed"
+  );
+}
+
+setUploadMessage(
+  duplicateData.duplicate
+    ? "Photo analyzed. Similar issue detected."
+    : "Photo analyzed. No similar issue found."
+);
+
+
+  
+
+
+
+  
+
         
           
         
