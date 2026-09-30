@@ -25,6 +25,9 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
+  const [complaint, setComplaint] = useState(null);
+  const [generatingComplaint, setGeneratingComplaint] = useState(false);
+  const [complaintMessage, setComplaintMessage] = useState("");
 
   // ==========================================
   // FETCH ISSUES
@@ -191,6 +194,56 @@ function App() {
       setUploadMessage(
         "Photo uploaded. AI is analyzing the image..."
       );
+      const handleGenerateComplaint = async () => {
+  if (!aiResult) {
+    return;
+  }
+
+  setGeneratingComplaint(true);
+  setComplaintMessage("");
+  setComplaint(null);
+
+  try {
+    const params = new URLSearchParams({
+      issue: aiResult.issue,
+      category: aiResult.category,
+      severity: aiResult.severity,
+      location: location || "Location not provided",
+      explanation: aiResult.explanation,
+    });
+
+    const response = await fetch(
+      `${API_URL}/generate-complaint?${params.toString()}`,
+      {
+        method: "POST",
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.status !== "success") {
+      throw new Error(
+        data.message || "Complaint generation failed"
+      );
+    }
+
+    setComplaint(data.complaint);
+    setComplaintMessage(
+      "Complaint generated successfully."
+    );
+  } catch (error) {
+    console.error(
+      "Complaint generation error:",
+      error
+    );
+
+    setComplaintMessage(
+      "Unable to generate complaint. Please try again."
+    );
+  } finally {
+    setGeneratingComplaint(false);
+  }
+};
 
       // ======================================
       // STEP 2: AI analysis
