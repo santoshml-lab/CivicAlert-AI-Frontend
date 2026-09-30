@@ -23,6 +23,8 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [location, setLocation] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadMessageType, setUploadMessageType] =
+  useState("");
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
   const [priorityResult, setPriorityResult] = useState(null);
@@ -247,6 +249,7 @@ function App() {
       event.preventDefault();
 
       if (!selectedFile) {
+        setUploadMessageType("error");
         setUploadMessage(
           "Please select an image first."
         );
@@ -254,6 +257,7 @@ function App() {
       }
 
       if (!location.trim()) {
+        setUploadMessageType("error");
         setUploadMessage(
           "Please enter the issue location."
         );
@@ -262,6 +266,7 @@ function App() {
 
       setUploading(true);
       setUploadMessage("");
+      setUploadMessageType("");
       setAiResult(null);
       setComplaint(null);
       setComplaintMessage("");
@@ -309,6 +314,7 @@ function App() {
             "Image URL was not returned by the server"
           );
         }
+        setUploadMessageType("info");
 
         setUploadMessage(
           "Photo uploaded. AI is analyzing the image..."
@@ -430,10 +436,16 @@ if (
   throw new Error(
     "Duplicate check failed"
   );
+
 }
-        
-        
-setDuplicateResult(duplicateData);
+        setDuplicateResult(duplicateData);
+
+setUploadMessageType(
+  duplicateData.duplicate
+    ? "warning"
+    : "success"
+);
+
 setUploadMessage(
   duplicateData.duplicate
     ? "Photo analyzed. Similar issue detected."
@@ -461,6 +473,8 @@ setUploadMessage(
           "CivicAlert AI error:",
           error
         );
+        setUploadMessageType("error");
+
 
         setUploadMessage(
           "Unable to analyze photo. Please try again."
