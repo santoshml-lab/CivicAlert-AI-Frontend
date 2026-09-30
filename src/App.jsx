@@ -13,9 +13,11 @@ function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
   const [error, setError] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -23,7 +25,10 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
-  
+
+  // ==========================================
+  // FETCH ISSUES
+  // ==========================================
 
   useEffect(() => {
     fetchIssues();
@@ -45,68 +50,100 @@ function App() {
       setError("");
     } catch (error) {
       console.error("Failed to fetch issues:", error);
+
       setError("Unable to load community issues.");
     } finally {
       setLoading(false);
     }
   };
 
+  // ==========================================
+  // FILTER ISSUES
+  // ==========================================
+
   const filteredIssues = issues.filter((issue) => {
-  const search = searchTerm.toLowerCase().trim();
+    const search = searchTerm.toLowerCase().trim();
 
-  const matchesSearch =
-    !search ||
-    issue.title?.toLowerCase().includes(search) ||
-    issue.location?.toLowerCase().includes(search) ||
-    issue.category?.toLowerCase().includes(search);
+    const matchesSearch =
+      !search ||
+      issue.title?.toLowerCase().includes(search) ||
+      issue.location?.toLowerCase().includes(search) ||
+      issue.category?.toLowerCase().includes(search);
 
-  const matchesSeverity =
-    severityFilter === "all" ||
-    issue.severity?.toLowerCase() === severityFilter;
+    const matchesSeverity =
+      severityFilter === "all" ||
+      issue.severity?.toLowerCase() === severityFilter;
 
-  const matchesStatus =
-    statusFilter === "all" ||
-    issue.status?.toLowerCase() === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" ||
+      issue.status?.toLowerCase() === statusFilter;
 
-  return matchesSearch && matchesSeverity && matchesStatus;
-});
+    return (
+      matchesSearch &&
+      matchesSeverity &&
+      matchesStatus
+    );
+  });
 
-  
-  
+  // ==========================================
+  // DASHBOARD ANALYTICS
+  // ==========================================
 
   const totalIssues = issues.length;
 
   const highSeverityIssues = issues.filter(
-    (issue) => issue.severity?.toLowerCase() === "high"
+    (issue) =>
+      issue.severity?.toLowerCase() === "high"
   ).length;
 
   const pendingIssues = issues.filter(
-    (issue) => issue.status?.toLowerCase() === "pending"
+    (issue) =>
+      issue.status?.toLowerCase() === "pending"
   ).length;
 
   const uniqueLocations = new Set(
-    issues.map((issue) => issue.location).filter(Boolean)
+    issues
+      .map((issue) => issue.location)
+      .filter(Boolean)
   ).size;
-  const categoryCounts = issues.reduce((counts, issue) => {
-  const category = issue.category || "other";
 
-  counts[category] = (counts[category] || 0) + 1;
+  // ==========================================
+  // CATEGORY ANALYTICS
+  // ==========================================
 
-  return counts;
-}, {});
+  const categoryCounts = issues.reduce(
+    (counts, issue) => {
+      const category = issue.category || "other";
 
-  const latestIssue = issues.length > 0 ? issues[0] : null;
+      counts[category] =
+        (counts[category] || 0) + 1;
+
+      return counts;
+    },
+    {}
+  );
+
+  const latestIssue =
+    issues.length > 0 ? issues[0] : null;
+
+  // ==========================================
+  // PHOTO UPLOAD + AI ANALYSIS
+  // ==========================================
 
   const handlePhotoUpload = async (event) => {
     event.preventDefault();
 
     if (!selectedFile) {
-      setUploadMessage("Please select an image first.");
+      setUploadMessage(
+        "Please select an image first."
+      );
       return;
     }
 
     if (!location.trim()) {
-      setUploadMessage("Please enter the issue location.");
+      setUploadMessage(
+        "Please enter the issue location."
+      );
       return;
     }
 
@@ -115,9 +152,9 @@ function App() {
     setAiResult(null);
 
     try {
-      // ================================
+      // ======================================
       // STEP 1: Upload photo
-      // ================================
+      // ======================================
 
       const formData = new FormData();
 
@@ -132,12 +169,18 @@ function App() {
       );
 
       if (!uploadResponse.ok) {
-        throw new Error("Photo upload failed");
+        throw new Error(
+          "Photo upload failed"
+        );
       }
 
-      const uploadData = await uploadResponse.json();
+      const uploadData =
+        await uploadResponse.json();
 
-      console.log("Storage upload:", uploadData);
+      console.log(
+        "Storage upload:",
+        uploadData
+      );
 
       if (!uploadData.image_url) {
         throw new Error(
@@ -149,44 +192,58 @@ function App() {
         "Photo uploaded. AI is analyzing the image..."
       );
 
-      // ================================
+      // ======================================
       // STEP 2: AI analysis
-      // ================================
+      // ======================================
 
       const analyzeResponse = await fetch(
         `${API_URL}/analyze-image?image_url=${encodeURIComponent(
           uploadData.image_url
-        )}&location=${encodeURIComponent(location.trim())}`,
+        )}&location=${encodeURIComponent(
+          location.trim()
+        )}`,
         {
           method: "POST",
         }
       );
 
       if (!analyzeResponse.ok) {
-        throw new Error("AI analysis failed");
+        throw new Error(
+          "AI analysis failed"
+        );
       }
 
-      const analyzeData = await analyzeResponse.json();
+      const analyzeData =
+        await analyzeResponse.json();
 
-      console.log("AI analysis:", analyzeData);
+      console.log(
+        "AI analysis:",
+        analyzeData
+      );
 
-      // ================================
+      // ======================================
       // STEP 3: Show AI result
-      // ================================
+      // ======================================
 
-      setAiResult(analyzeData.analysis);
+      setAiResult(
+        analyzeData.analysis
+      );
 
       setUploadMessage(
         "Photo analyzed successfully by CivicAlert AI."
       );
 
-      // ================================
+      // ======================================
       // STEP 4: Refresh issues
-      // ================================
+      // ======================================
 
       await fetchIssues();
+
     } catch (error) {
-      console.error("CivicAlert AI error:", error);
+      console.error(
+        "CivicAlert AI error:",
+        error
+      );
 
       setUploadMessage(
         "Unable to analyze photo. Please try again."
@@ -196,63 +253,95 @@ function App() {
     }
   };
 
-  const handleStatusChange = async (issueId, newStatus) => {
-  try {
-    const response = await fetch(
-      `${API_URL}/issues/${issueId}/status?status=${encodeURIComponent(
-        newStatus
-      )}`,
-      {
-        method: "PATCH",
+  // ==========================================
+  // UPDATE ISSUE STATUS
+  // ==========================================
+
+  const handleStatusChange = async (
+    issueId,
+    newStatus
+  ) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/issues/${issueId}/status?status=${encodeURIComponent(
+          newStatus
+        )}`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Failed to update issue status"
+        );
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to update issue status");
+      const data =
+        await response.json();
+
+      console.log(
+        "Status updated:",
+        data
+      );
+
+      await fetchIssues();
+
+    } catch (error) {
+      console.error(
+        "Status update error:",
+        error
+      );
+
+      alert(
+        "Unable to update issue status. Please try again."
+      );
     }
+  };
 
-    const data = await response.json();
-
-    console.log("Status updated:", data);
-
-    await fetchIssues();
-  } catch (error) {
-    console.error("Status update error:", error);
-
-    alert("Unable to update issue status. Please try again.");
-  }
-};
+  // ==========================================
+  // UI
+  // ==========================================
 
   return (
     <div className="app">
-      {/* ================================
+
+      {/* ======================================
           TOP BAR
-      ================================ */}
+      ====================================== */}
 
       <header className="topbar">
+
         <div className="brand">
           <AlertTriangle size={28} />
-          <span>CivicAlert AI</span>
+          <span>
+            CivicAlert AI
+          </span>
         </div>
 
         <div className="topbar-subtitle">
           Community Issue Intelligence
         </div>
+
       </header>
 
       <div className="layout">
-        {/* ================================
+
+        {/* ====================================
             SIDEBAR
-        ================================ */}
+        ==================================== */}
 
         <aside className="sidebar">
+
           <button
             className={
               activePage === "dashboard"
                 ? "nav-item active"
                 : "nav-item"
             }
-            onClick={() => setActivePage("dashboard")}
+            onClick={() =>
+              setActivePage("dashboard")
+            }
           >
             <LayoutDashboard size={20} />
             Dashboard
@@ -264,7 +353,9 @@ function App() {
                 ? "nav-item active"
                 : "nav-item"
             }
-            onClick={() => setActivePage("report")}
+            onClick={() =>
+              setActivePage("report")
+            }
           >
             <PlusCircle size={20} />
             Report Issue
@@ -276,77 +367,171 @@ function App() {
                 ? "nav-item active"
                 : "nav-item"
             }
-            onClick={() => setActivePage("issues")}
+            onClick={() =>
+              setActivePage("issues")
+            }
           >
             <FileText size={20} />
             Issues
           </button>
+
         </aside>
 
+        {/* ====================================
+            MAIN CONTENT
+        ==================================== */}
+
         <main className="main-content">
-          {/* ================================
+
+          {/* ==================================
               DASHBOARD
-          ================================ */}
+          ================================== */}
 
           {activePage === "dashboard" && (
             <>
+
               <div className="page-header">
+
                 <div>
-                  <h1>Community Dashboard</h1>
+
+                  <h1>
+                    Community Dashboard
+                  </h1>
 
                   <p>
-                    Monitor and understand local community issues.
+                    Monitor and understand local
+                    community issues.
                   </p>
+
                 </div>
+
               </div>
+
+              {/* =================================
+                  MAIN STATISTICS
+              ================================= */}
 
               <div className="stats-grid">
-                <div className="stat-card">
-                  <span>Total Issues</span>
-
-                  <strong>
-                    {loading ? "..." : totalIssues}
-                  </strong>
-                </div>
-                
-  
 
                 <div className="stat-card">
-                  <span>High Severity</span>
+
+                  <span>
+                    Total Issues
+                  </span>
 
                   <strong>
-                    {loading ? "..." : highSeverityIssues}
+                    {loading
+                      ? "..."
+                      : totalIssues}
                   </strong>
+
                 </div>
 
                 <div className="stat-card">
-                  <span>Pending</span>
+
+                  <span>
+                    High Severity
+                  </span>
 
                   <strong>
-                    {loading ? "..." : pendingIssues}
+                    {loading
+                      ? "..."
+                      : highSeverityIssues}
                   </strong>
+
                 </div>
 
                 <div className="stat-card">
-                  <span>Locations</span>
+
+                  <span>
+                    Pending
+                  </span>
 
                   <strong>
-                    {loading ? "..." : uniqueLocations}
+                    {loading
+                      ? "..."
+                      : pendingIssues}
                   </strong>
+
                 </div>
+
+                <div className="stat-card">
+
+                  <span>
+                    Locations
+                  </span>
+
+                  <strong>
+                    {loading
+                      ? "..."
+                      : uniqueLocations}
+                  </strong>
+
+                </div>
+
               </div>
 
+              {/* =================================
+                  CATEGORY ANALYTICS
+              ================================= */}
+
+              <div
+                style={{
+                  marginTop: "24px",
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                }}
+              >
+
+                {Object.entries(
+                  categoryCounts
+                ).map(
+                  ([category, count]) => (
+                    <div
+                      key={category}
+                      className="stat-card"
+                      style={{
+                        minWidth: "160px",
+                      }}
+                    >
+
+                      <span>
+                        {category}
+                      </span>
+
+                      <strong>
+                        {count}
+                      </strong>
+
+                    </div>
+                  )
+                )}
+
+              </div>
+
+              {/* =================================
+                  RECENT ISSUES
+              ================================= */}
+
               <section className="content-card">
+
                 <div className="card-header">
+
                   <div>
-                    <h2>Recent Community Issues</h2>
+
+                    <h2>
+                      Recent Community Issues
+                    </h2>
 
                     <p>
                       Latest reported problems
                     </p>
+
                   </div>
 
                   <MapPin size={22} />
+
                 </div>
 
                 {loading && (
@@ -356,51 +541,72 @@ function App() {
                 )}
 
                 {!loading && error && (
-                  <p>{error}</p>
-                )}
-
-                {!loading && !error && !latestIssue && (
                   <p>
-                    No community issues reported yet.
+                    {error}
                   </p>
                 )}
 
-                {!loading && !error && latestIssue && (
-                  <div className="issue-row">
-                    <div>
-                      <h3>
-                        {latestIssue.title}
-                      </h3>
+                {!loading &&
+                  !error &&
+                  !latestIssue && (
+                    <p>
+                      No community issues reported yet.
+                    </p>
+                  )}
 
-                      <p>
-                        {latestIssue.location ||
-                          "Location not provided"}
-                      </p>
+                {!loading &&
+                  !error &&
+                  latestIssue && (
+
+                    <div className="issue-row">
+
+                      <div>
+
+                        <h3>
+                          {latestIssue.title}
+                        </h3>
+
+                        <p>
+                          {latestIssue.location ||
+                            "Location not provided"}
+                        </p>
+
+                      </div>
+
+                      <span
+                        className={`severity ${
+                          latestIssue.severity?.toLowerCase() ||
+                          ""
+                        }`}
+                      >
+                        {latestIssue.severity ||
+                          "Unknown"}
+                      </span>
+
                     </div>
 
-                    <span
-                      className={`severity ${
-                        latestIssue.severity?.toLowerCase() || ""
-                      }`}
-                    >
-                      {latestIssue.severity || "Unknown"}
-                    </span>
-                  </div>
-                )}
+                  )}
+
               </section>
+
             </>
           )}
 
-          {/* ================================
+          {/* ==================================
               REPORT ISSUE
-          ================================ */}
+          ================================== */}
 
           {activePage === "report" && (
+
             <section className="content-card">
-              <h1>Report an Issue</h1>
+
+              <h1>
+                Report an Issue
+              </h1>
 
               <p>
-                Submit a community problem for AI-powered analysis.
+                Submit a community problem for
+                AI-powered analysis.
               </p>
 
               <form
@@ -411,10 +617,14 @@ function App() {
                   gap: "18px",
                 }}
               >
+
                 {/* PHOTO */}
 
                 <div>
-                  <label>Issue Photo</label>
+
+                  <label>
+                    Issue Photo
+                  </label>
 
                   <input
                     type="file"
@@ -422,40 +632,52 @@ function App() {
                     accept="image/*"
                     required
                     onChange={(event) => {
+
                       setSelectedFile(
                         event.target.files[0]
                       );
 
                       setUploadMessage("");
                       setAiResult(null);
+
                     }}
                     style={{
                       width: "100%",
                       marginTop: "8px",
                       padding: "12px",
                       borderRadius: "8px",
-                      border: "1px solid #334155",
-                      background: "#0f172a",
-                      color: "#cbd5e1",
+                      border:
+                        "1px solid #334155",
+                      background:
+                        "#0f172a",
+                      color:
+                        "#cbd5e1",
                     }}
                   />
+
                 </div>
 
                 {selectedFile && (
+
                   <p
                     style={{
                       color: "#94a3b8",
                       fontSize: "14px",
                     }}
                   >
-                    Selected: {selectedFile.name}
+                    Selected:{" "}
+                    {selectedFile.name}
                   </p>
+
                 )}
 
                 {/* LOCATION */}
 
                 <div>
-                  <label>Issue Location</label>
+
+                  <label>
+                    Issue Location
+                  </label>
 
                   <div
                     style={{
@@ -463,14 +685,18 @@ function App() {
                       marginTop: "8px",
                     }}
                   >
+
                     <MapPin
                       size={18}
                       style={{
-                        position: "absolute",
+                        position:
+                          "absolute",
                         left: "12px",
                         top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "#60a5fa",
+                        transform:
+                          "translateY(-50%)",
+                        color:
+                          "#60a5fa",
                       }}
                     />
 
@@ -479,21 +705,32 @@ function App() {
                       name="location"
                       value={location}
                       onChange={(event) => {
-                        setLocation(event.target.value);
+
+                        setLocation(
+                          event.target.value
+                        );
+
                         setUploadMessage("");
+
                       }}
                       placeholder="Example: Main Road, Sahibganj"
                       required
                       style={{
                         width: "100%",
-                        padding: "12px 12px 12px 40px",
+                        padding:
+                          "12px 12px 12px 40px",
                         borderRadius: "8px",
-                        border: "1px solid #334155",
-                        background: "#0f172a",
-                        color: "#f8fafc",
+                        border:
+                          "1px solid #334155",
+                        background:
+                          "#0f172a",
+                        color:
+                          "#f8fafc",
                       }}
                     />
+
                   </div>
+
                 </div>
 
                 {/* SUBMIT */}
@@ -502,40 +739,54 @@ function App() {
                   type="submit"
                   disabled={uploading}
                   style={{
-                    padding: "13px 20px",
+                    padding:
+                      "13px 20px",
                     border: "none",
                     borderRadius: "9px",
                     background:
                       "linear-gradient(135deg, #2563eb, #06b6d4)",
-                    color: "#ffffff",
-                    fontWeight: "600",
-                    cursor: uploading
-                      ? "not-allowed"
-                      : "pointer",
-                    opacity: uploading ? 0.7 : 1,
+                    color:
+                      "#ffffff",
+                    fontWeight:
+                      "600",
+                    cursor:
+                      uploading
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity:
+                      uploading
+                        ? 0.7
+                        : 1,
                   }}
                 >
+
                   {uploading
                     ? "AI Analyzing..."
                     : "Upload & Analyze"}
+
                 </button>
 
                 {/* MESSAGE */}
 
                 {uploadMessage && (
+
                   <p
                     style={{
-                      color: "#67e8f9",
-                      fontSize: "14px",
+                      color:
+                        "#67e8f9",
+                      fontSize:
+                        "14px",
                     }}
                   >
                     {uploadMessage}
                   </p>
+
                 )}
 
                 {/* AI RESULT */}
 
                 {aiResult && (
+
                   <div
                     style={{
                       marginTop: "10px",
@@ -549,11 +800,15 @@ function App() {
                         "0 12px 30px rgba(0, 0, 0, 0.2)",
                     }}
                   >
+
                     <h2
                       style={{
-                        fontSize: "20px",
-                        marginBottom: "18px",
-                        color: "#f8fafc",
+                        fontSize:
+                          "20px",
+                        marginBottom:
+                          "18px",
+                        color:
+                          "#f8fafc",
                       }}
                     >
                       AI Analysis
@@ -561,268 +816,473 @@ function App() {
 
                     <div
                       style={{
-                        display: "grid",
-                        gap: "12px",
+                        display:
+                          "grid",
+                        gap:
+                          "12px",
                       }}
                     >
+
                       <p
                         style={{
-                          color: "#cbd5e1",
-                          lineHeight: "1.6",
+                          color:
+                            "#cbd5e1",
+                          lineHeight:
+                            "1.6",
                         }}
                       >
+
                         <strong
                           style={{
-                            color: "#f8fafc",
+                            color:
+                              "#f8fafc",
                           }}
                         >
                           Issue:
                         </strong>{" "}
+
                         {aiResult.issue}
+
                       </p>
 
                       <p
                         style={{
-                          color: "#cbd5e1",
-                          lineHeight: "1.6",
+                          color:
+                            "#cbd5e1",
+                          lineHeight:
+                            "1.6",
                         }}
                       >
+
                         <strong
                           style={{
-                            color: "#f8fafc",
+                            color:
+                              "#f8fafc",
                           }}
                         >
                           Category:
                         </strong>{" "}
+
                         {aiResult.category}
+
                       </p>
 
                       <p
                         style={{
-                          color: "#cbd5e1",
-                          lineHeight: "1.6",
+                          color:
+                            "#cbd5e1",
+                          lineHeight:
+                            "1.6",
                         }}
                       >
+
                         <strong
                           style={{
-                            color: "#f8fafc",
+                            color:
+                              "#f8fafc",
                           }}
                         >
                           Severity:
                         </strong>{" "}
+
                         <span
                           className={`severity ${
-                            aiResult.severity?.toLowerCase() || ""
+                            aiResult.severity?.toLowerCase() ||
+                            ""
                           }`}
                         >
                           {aiResult.severity}
                         </span>
+
                       </p>
 
                       <p
                         style={{
-                          color: "#cbd5e1",
-                          lineHeight: "1.7",
+                          color:
+                            "#cbd5e1",
+                          lineHeight:
+                            "1.7",
                         }}
                       >
+
                         <strong
                           style={{
-                            color: "#f8fafc",
+                            color:
+                              "#f8fafc",
                           }}
                         >
                           Location:
                         </strong>{" "}
+
                         {location}
+
                       </p>
 
                       <p
                         style={{
-                          color: "#cbd5e1",
-                          lineHeight: "1.7",
+                          color:
+                            "#cbd5e1",
+                          lineHeight:
+                            "1.7",
                         }}
                       >
+
                         <strong
                           style={{
-                            color: "#f8fafc",
+                            color:
+                              "#f8fafc",
                           }}
                         >
                           Explanation:
                         </strong>{" "}
+
                         {aiResult.explanation}
+
                       </p>
+
                     </div>
+
                   </div>
+
                 )}
+
               </form>
+
             </section>
+
           )}
 
-          {/* ================================
-              ISSUES
-          ================================ */}
+          {/* ==================================
+              ISSUES PAGE
+          ================================== */}
 
           {activePage === "issues" && (
-  <section className="content-card">
-    <h1>Community Issues</h1>
 
-    <p>
-      View reported issues and manage their current status.
-    </p>
-    <div
-  style={{
-    display: "flex",
-    gap: "12px",
-    flexWrap: "wrap",
-    marginTop: "20px",
-    marginBottom: "20px",
-  }}
->
-  <input
-    type="text"
-    placeholder="Search issues..."
-    value={searchTerm}
-    onChange={(event) => setSearchTerm(event.target.value)}
-    style={{
-      flex: 1,
-      minWidth: "220px",
-      padding: "10px 12px",
-      borderRadius: "8px",
-      border: "1px solid #334155",
-      background: "#0f172a",
-      color: "#f8fafc",
-    }}
-  />
+            <section className="content-card">
 
-  <select
-    value={severityFilter}
-    onChange={(event) => setSeverityFilter(event.target.value)}
-    style={{
-      padding: "10px 12px",
-      borderRadius: "8px",
-      border: "1px solid #334155",
-      background: "#0f172a",
-      color: "#f8fafc",
-    }}
-  >
-    <option value="all">All Severity</option>
-    <option value="high">High</option>
-    <option value="medium">Medium</option>
-    <option value="low">Low</option>
-  </select>
-
-  <select
-    value={statusFilter}
-    onChange={(event) => setStatusFilter(event.target.value)}
-    style={{
-      padding: "10px 12px",
-      borderRadius: "8px",
-      border: "1px solid #334155",
-      background: "#0f172a",
-      color: "#f8fafc",
-    }}
-  >
-    <option value="all">All Status</option>
-    <option value="pending">Pending</option>
-    <option value="in progress">In Progress</option>
-    <option value="resolved">Resolved</option>
-  </select>
-</div>
-
-    {!loading && issues.length > 0 && (
-      <div style={{ marginTop: "20px" }}>
-        {filteredIssues.map((issue) => (
-          <div
-            className="issue-row"
-            key={issue.id}
-            style={{
-              marginBottom: "12px",
-              alignItems: "flex-start",
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <h3>{issue.title}</h3>
+              <h1>
+                Community Issues
+              </h1>
 
               <p>
-                {issue.location ||
-                  "Location not provided"}
+                View reported issues and manage
+                their current status.
               </p>
 
-              {issue.category && (
-                <p style={{ marginTop: "5px" }}>
-                  Category: {issue.category}
-                </p>
-              )}
+              {/* SEARCH + FILTERS */}
 
-              <p style={{ marginTop: "5px" }}>
-                Status:{" "}
-                <strong>
-                  {issue.status || "pending"}
-                </strong>
-              </p>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: "10px",
-              }}
-            >
-              <span
-                className={`severity ${
-                  issue.severity?.toLowerCase() || ""
-                }`}
-              >
-                {issue.severity || "Unknown"}
-              </span>
-
-              <select
-                value={issue.status || "pending"}
-                onChange={(event) =>
-                  handleStatusChange(
-                    issue.id,
-                    event.target.value
-                  )
-                }
+              <div
                 style={{
-                  padding: "8px 10px",
-                  borderRadius: "8px",
-                  border: "1px solid #334155",
-                  background: "#0f172a",
-                  color: "#f8fafc",
-                  cursor: "pointer",
+                  display: "flex",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  marginTop: "20px",
+                  marginBottom: "20px",
                 }}
               >
-                <option value="pending">
-                  Pending
-                </option>
 
-                <option value="in progress">
-                  In Progress
-                </option>
+                <input
+                  type="text"
+                  placeholder="Search issues..."
+                  value={searchTerm}
+                  onChange={(event) =>
+                    setSearchTerm(
+                      event.target.value
+                    )
+                  }
+                  style={{
+                    flex: 1,
+                    minWidth: "220px",
+                    padding:
+                      "10px 12px",
+                    borderRadius:
+                      "8px",
+                    border:
+                      "1px solid #334155",
+                    background:
+                      "#0f172a",
+                    color:
+                      "#f8fafc",
+                  }}
+                />
 
-                <option value="resolved">
-                  Resolved
-                </option>
-              </select>
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
+                {/* SEVERITY FILTER */}
 
-    {!loading && issues.length === 0 && (
-      <p style={{ marginTop: "20px" }}>
-        No issues found.
-      </p>
-    )}
-  </section>
-)}
-            
-                      
+                <select
+                  value={severityFilter}
+                  onChange={(event) =>
+                    setSeverityFilter(
+                      event.target.value
+                    )
+                  }
+                  style={{
+                    padding:
+                      "10px 12px",
+                    borderRadius:
+                      "8px",
+                    border:
+                      "1px solid #334155",
+                    background:
+                      "#0f172a",
+                    color:
+                      "#f8fafc",
+                  }}
+                >
+
+                  <option value="all">
+                    All Severity
+                  </option>
+
+                  <option value="high">
+                    High
+                  </option>
+
+                  <option value="medium">
+                    Medium
+                  </option>
+
+                  <option value="low">
+                    Low
+                  </option>
+
+                </select>
+
+                {/* STATUS FILTER */}
+
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(
+                      event.target.value
+                    )
+                  }
+                  style={{
+                    padding:
+                      "10px 12px",
+                    borderRadius:
+                      "8px",
+                    border:
+                      "1px solid #334155",
+                    background:
+                      "#0f172a",
+                    color:
+                      "#f8fafc",
+                  }}
+                >
+
+                  <option value="all">
+                    All Status
+                  </option>
+
+                  <option value="pending">
+                    Pending
+                  </option>
+
+                  <option value="in progress">
+                    In Progress
+                  </option>
+
+                  <option value="resolved">
+                    Resolved
+                  </option>
+
+                </select>
+
+              </div>
+
+              {/* ISSUE LIST */}
+
+              {!loading &&
+                issues.length > 0 && (
+
+                  <div
+                    style={{
+                      marginTop: "20px",
+                    }}
+                  >
+
+                    {filteredIssues.map(
+                      (issue) => (
+
+                        <div
+                          className="issue-row"
+                          key={issue.id}
+                          style={{
+                            marginBottom:
+                              "12px",
+                            alignItems:
+                              "flex-start",
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              flex: 1,
+                            }}
+                          >
+
+                            <h3>
+                              {issue.title}
+                            </h3>
+
+                            <p>
+                              {issue.location ||
+                                "Location not provided"}
+                            </p>
+
+                            {issue.category && (
+
+                              <p
+                                style={{
+                                  marginTop:
+                                    "5px",
+                                }}
+                              >
+                                Category:{" "}
+                                {issue.category}
+                              </p>
+
+                            )}
+
+                            <p
+                              style={{
+                                marginTop:
+                                  "5px",
+                              }}
+                            >
+
+                              Status:{" "}
+
+                              <strong>
+                                {issue.status ||
+                                  "pending"}
+                              </strong>
+
+                            </p>
+
+                          </div>
+
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              flexDirection:
+                                "column",
+                              alignItems:
+                                "flex-end",
+                              gap:
+                                "10px",
+                            }}
+                          >
+
+                            {/* SEVERITY */}
+
+                            <span
+                              className={`severity ${
+                                issue.severity?.toLowerCase() ||
+                                ""
+                              }`}
+                            >
+                              {issue.severity ||
+                                "Unknown"}
+                            </span>
+
+                            {/* STATUS UPDATE */}
+
+                            <select
+                              value={
+                                issue.status ||
+                                "pending"
+                              }
+                              onChange={(event) =>
+                                handleStatusChange(
+                                  issue.id,
+                                  event.target.value
+                                )
+                              }
+                              style={{
+                                padding:
+                                  "8px 10px",
+                                borderRadius:
+                                  "8px",
+                                border:
+                                  "1px solid #334155",
+                                background:
+                                  "#0f172a",
+                                color:
+                                  "#f8fafc",
+                                cursor:
+                                  "pointer",
+                              }}
+                            >
+
+                              <option value="pending">
+                                Pending
+                              </option>
+
+                              <option value="in progress">
+                                In Progress
+                              </option>
+
+                              <option value="resolved">
+                                Resolved
+                              </option>
+
+                            </select>
+
+                          </div>
+
+                        </div>
+
+                      )
+                    )}
+
+                  </div>
+
+                )}
+
+              {/* NO ISSUES */}
+
+              {!loading &&
+                issues.length === 0 && (
+
+                  <p
+                    style={{
+                      marginTop:
+                        "20px",
+                    }}
+                  >
+                    No issues found.
+                  </p>
+
+                )}
+
+              {/* NO FILTER RESULTS */}
+
+              {!loading &&
+                issues.length > 0 &&
+                filteredIssues.length === 0 && (
+
+                  <p
+                    style={{
+                      marginTop:
+                        "20px",
+                    }}
+                  >
+                    No issues match the selected
+                    search or filters.
+                  </p>
+
+                )}
+
+            </section>
+
+          )}
+
         </main>
+
       </div>
+
     </div>
   );
 }
