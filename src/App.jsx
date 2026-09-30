@@ -1244,7 +1244,7 @@ setUploadMessage(
     {uploadMessage}
   </div>
 
-)}6
+)}
 
                 
 
