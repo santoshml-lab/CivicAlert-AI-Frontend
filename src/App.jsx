@@ -25,6 +25,7 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
+  const [priorityResult, setPriorityResult] = useState(null);
 
   const [complaint, setComplaint] = useState(null);
   const [generatingComplaint, setGeneratingComplaint] =
@@ -262,6 +263,7 @@ function App() {
       setAiResult(null);
       setComplaint(null);
       setComplaintMessage("");
+      setPriorityResult(null);
 
       try {
         // ======================================
@@ -344,12 +346,57 @@ function App() {
         // ======================================
 
         setAiResult(
-          analyzeData.analysis
-        );
+  analyzeData.analysis
+);
 
-        setUploadMessage(
-          "Photo analyzed successfully by CivicAlert AI."
-        );
+// ======================================
+// STEP 3: Calculate priority
+// ======================================
+
+const priorityResponse =
+  await fetch(
+    `${API_URL}/priority-score?severity=${encodeURIComponent(
+      analyzeData.analysis.severity
+    )}&category=${encodeURIComponent(
+      analyzeData.analysis.category
+    )}&location=${encodeURIComponent(
+      location.trim()
+    )}`
+  );
+
+if (!priorityResponse.ok) {
+  throw new Error(
+    "Priority calculation failed"
+  );
+}
+
+const priorityData =
+  await priorityResponse.json();
+
+console.log(
+  "Priority intelligence:",
+  priorityData
+);
+
+if (
+  priorityData.status !==
+  "success"
+) {
+  throw new Error(
+    "Priority calculation failed"
+  );
+}
+
+setPriorityResult(
+  priorityData
+);
+
+setUploadMessage(
+  "Photo analyzed and priority calculated successfully."
+);
+        
+          
+        
 
         // ======================================
         // STEP 4: Refresh issues
