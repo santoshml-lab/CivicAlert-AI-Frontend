@@ -1331,6 +1331,115 @@ setUploadMessage(
                   </div>
 
                 )}
+                {/* ==================================
+    AI PRIORITY INTELLIGENCE
+================================== */}
+
+{priorityResult && (
+  <div
+    style={{
+      marginTop: "16px",
+      padding: "20px",
+      borderRadius: "14px",
+      background:
+        "linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))",
+      border:
+        "1px solid rgba(96, 165, 250, 0.25)",
+      boxShadow:
+        "0 12px 30px rgba(0, 0, 0, 0.2)",
+    }}
+  >
+    <h2
+      style={{
+        fontSize: "20px",
+        marginBottom: "16px",
+        color: "#f8fafc",
+      }}
+    >
+      AI Priority Intelligence
+    </h2>
+
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        flexWrap: "wrap",
+      }}
+    >
+      <div>
+        <p
+          style={{
+            color: "#94a3b8",
+            fontSize: "14px",
+            marginBottom: "6px",
+          }}
+        >
+          Priority Score
+        </p>
+
+        <strong
+          style={{
+            fontSize: "36px",
+            color: "#f8fafc",
+          }}
+        >
+          {priorityResult.priority_score}
+
+          <span
+            style={{
+              fontSize: "18px",
+              color: "#64748b",
+            }}
+          >
+            /100
+          </span>
+        </strong>
+      </div>
+
+      <span
+        style={{
+          padding: "8px 16px",
+          borderRadius: "999px",
+          background:
+            priorityResult.priority === "high"
+              ? "rgba(239, 68, 68, 0.15)"
+              : priorityResult.priority === "medium"
+              ? "rgba(234, 179, 8, 0.15)"
+              : "rgba(34, 197, 94, 0.15)",
+          color:
+            priorityResult.priority === "high"
+              ? "#fca5a5"
+              : priorityResult.priority === "medium"
+              ? "#fde68a"
+              : "#86efac",
+          fontWeight: "700",
+          textTransform: "uppercase",
+        }}
+      >
+        {priorityResult.priority} Priority
+      </span>
+    </div>
+
+    <p
+      style={{
+        marginTop: "16px",
+        color: "#cbd5e1",
+        lineHeight: "1.7",
+      }}
+    >
+      <strong
+        style={{
+          color: "#f8fafc",
+        }}
+      >
+        Reason:
+      </strong>{" "}
+      {priorityResult.reason}
+    </p>
+  </div>
+)}
 
                 {/* ==================================
                     GENERATE COMPLAINT BUTTON
