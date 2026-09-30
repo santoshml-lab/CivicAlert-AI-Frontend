@@ -16,6 +16,7 @@ function App() {
   const [error, setError] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [location, setLocation] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
@@ -40,7 +41,6 @@ function App() {
       setError("");
     } catch (error) {
       console.error("Failed to fetch issues:", error);
-
       setError("Unable to load community issues.");
     } finally {
       setLoading(false);
@@ -71,14 +71,19 @@ function App() {
       return;
     }
 
+    if (!location.trim()) {
+      setUploadMessage("Please enter the issue location.");
+      return;
+    }
+
     setUploading(true);
     setUploadMessage("");
     setAiResult(null);
 
     try {
-      // --------------------------------
+      // ================================
       // STEP 1: Upload photo
-      // --------------------------------
+      // ================================
 
       const formData = new FormData();
 
@@ -100,7 +105,6 @@ function App() {
 
       console.log("Storage upload:", uploadData);
 
-      // Make sure backend returned image URL
       if (!uploadData.image_url) {
         throw new Error(
           "Image URL was not returned by the server"
@@ -111,14 +115,14 @@ function App() {
         "Photo uploaded. AI is analyzing the image..."
       );
 
-      // --------------------------------
-      // STEP 2: AI image analysis
-      // --------------------------------
+      // ================================
+      // STEP 2: AI analysis
+      // ================================
 
       const analyzeResponse = await fetch(
         `${API_URL}/analyze-image?image_url=${encodeURIComponent(
           uploadData.image_url
-        )}`,
+        )}&location=${encodeURIComponent(location.trim())}`,
         {
           method: "POST",
         }
@@ -132,9 +136,9 @@ function App() {
 
       console.log("AI analysis:", analyzeData);
 
-      // --------------------------------
+      // ================================
       // STEP 3: Show AI result
-      // --------------------------------
+      // ================================
 
       setAiResult(analyzeData.analysis);
 
@@ -142,9 +146,9 @@ function App() {
         "Photo analyzed successfully by CivicAlert AI."
       );
 
-      // --------------------------------
+      // ================================
       // STEP 4: Refresh issues
-      // --------------------------------
+      // ================================
 
       await fetchIssues();
     } catch (error) {
@@ -160,6 +164,10 @@ function App() {
 
   return (
     <div className="app">
+      {/* ================================
+          TOP BAR
+      ================================ */}
+
       <header className="topbar">
         <div className="brand">
           <AlertTriangle size={28} />
@@ -172,6 +180,10 @@ function App() {
       </header>
 
       <div className="layout">
+        {/* ================================
+            SIDEBAR
+        ================================ */}
+
         <aside className="sidebar">
           <button
             className={
@@ -211,9 +223,9 @@ function App() {
         </aside>
 
         <main className="main-content">
-          {/* =========================
+          {/* ================================
               DASHBOARD
-          ========================= */}
+          ================================ */}
 
           {activePage === "dashboard" && (
             <>
@@ -281,9 +293,7 @@ function App() {
                 )}
 
                 {!loading && error && (
-                  <p>
-                    {error}
-                  </p>
+                  <p>{error}</p>
                 )}
 
                 {!loading && !error && !latestIssue && (
@@ -318,9 +328,9 @@ function App() {
             </>
           )}
 
-          {/* =========================
+          {/* ================================
               REPORT ISSUE
-          ========================= */}
+          ================================ */}
 
           {activePage === "report" && (
             <section className="content-card">
@@ -338,6 +348,8 @@ function App() {
                   gap: "18px",
                 }}
               >
+                {/* PHOTO */}
+
                 <div>
                   <label>Issue Photo</label>
 
@@ -377,6 +389,52 @@ function App() {
                   </p>
                 )}
 
+                {/* LOCATION */}
+
+                <div>
+                  <label>Issue Location</label>
+
+                  <div
+                    style={{
+                      position: "relative",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <MapPin
+                      size={18}
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#60a5fa",
+                      }}
+                    />
+
+                    <input
+                      type="text"
+                      name="location"
+                      value={location}
+                      onChange={(event) => {
+                        setLocation(event.target.value);
+                        setUploadMessage("");
+                      }}
+                      placeholder="Example: Main Road, Sahibganj"
+                      required
+                      style={{
+                        width: "100%",
+                        padding: "12px 12px 12px 40px",
+                        borderRadius: "8px",
+                        border: "1px solid #334155",
+                        background: "#0f172a",
+                        color: "#f8fafc",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* SUBMIT */}
+
                 <button
                   type="submit"
                   disabled={uploading}
@@ -399,6 +457,8 @@ function App() {
                     : "Upload & Analyze"}
                 </button>
 
+                {/* MESSAGE */}
+
                 {uploadMessage && (
                   <p
                     style={{
@@ -410,9 +470,7 @@ function App() {
                   </p>
                 )}
 
-                {/* =========================
-                    AI RESULT
-                ========================= */}
+                {/* AI RESULT */}
 
                 {aiResult && (
                   <div
@@ -509,6 +567,22 @@ function App() {
                             color: "#f8fafc",
                           }}
                         >
+                          Location:
+                        </strong>{" "}
+                        {location}
+                      </p>
+
+                      <p
+                        style={{
+                          color: "#cbd5e1",
+                          lineHeight: "1.7",
+                        }}
+                      >
+                        <strong
+                          style={{
+                            color: "#f8fafc",
+                          }}
+                        >
                           Explanation:
                         </strong>{" "}
                         {aiResult.explanation}
@@ -520,9 +594,9 @@ function App() {
             </section>
           )}
 
-          {/* =========================
+          {/* ================================
               ISSUES
-          ========================= */}
+          ================================ */}
 
           {activePage === "issues" && (
             <section className="content-card">
