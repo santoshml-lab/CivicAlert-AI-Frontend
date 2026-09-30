@@ -25,9 +25,12 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [aiResult, setAiResult] = useState(null);
+
   const [complaint, setComplaint] = useState(null);
-  const [generatingComplaint, setGeneratingComplaint] = useState(false);
-  const [complaintMessage, setComplaintMessage] = useState("");
+  const [generatingComplaint, setGeneratingComplaint] =
+    useState(false);
+  const [complaintMessage, setComplaintMessage] =
+    useState("");
 
   // ==========================================
   // FETCH ISSUES
@@ -41,10 +44,14 @@ function App() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/issues`);
+      const response = await fetch(
+        `${API_URL}/issues`
+      );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch issues");
+        throw new Error(
+          "Failed to fetch issues"
+        );
       }
 
       const data = await response.json();
@@ -52,9 +59,14 @@ function App() {
       setIssues(data.issues || []);
       setError("");
     } catch (error) {
-      console.error("Failed to fetch issues:", error);
+      console.error(
+        "Failed to fetch issues:",
+        error
+      );
 
-      setError("Unable to load community issues.");
+      setError(
+        "Unable to load community issues."
+      );
     } finally {
       setLoading(false);
     }
@@ -64,29 +76,40 @@ function App() {
   // FILTER ISSUES
   // ==========================================
 
-  const filteredIssues = issues.filter((issue) => {
-    const search = searchTerm.toLowerCase().trim();
+  const filteredIssues = issues.filter(
+    (issue) => {
+      const search =
+        searchTerm.toLowerCase().trim();
 
-    const matchesSearch =
-      !search ||
-      issue.title?.toLowerCase().includes(search) ||
-      issue.location?.toLowerCase().includes(search) ||
-      issue.category?.toLowerCase().includes(search);
+      const matchesSearch =
+        !search ||
+        issue.title
+          ?.toLowerCase()
+          .includes(search) ||
+        issue.location
+          ?.toLowerCase()
+          .includes(search) ||
+        issue.category
+          ?.toLowerCase()
+          .includes(search);
 
-    const matchesSeverity =
-      severityFilter === "all" ||
-      issue.severity?.toLowerCase() === severityFilter;
+      const matchesSeverity =
+        severityFilter === "all" ||
+        issue.severity?.toLowerCase() ===
+          severityFilter;
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      issue.status?.toLowerCase() === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" ||
+        issue.status?.toLowerCase() ===
+          statusFilter;
 
-    return (
-      matchesSearch &&
-      matchesSeverity &&
-      matchesStatus
-    );
-  });
+      return (
+        matchesSearch &&
+        matchesSeverity &&
+        matchesStatus
+      );
+    }
+  );
 
   // ==========================================
   // DASHBOARD ANALYTICS
@@ -94,15 +117,19 @@ function App() {
 
   const totalIssues = issues.length;
 
-  const highSeverityIssues = issues.filter(
-    (issue) =>
-      issue.severity?.toLowerCase() === "high"
-  ).length;
+  const highSeverityIssues =
+    issues.filter(
+      (issue) =>
+        issue.severity?.toLowerCase() ===
+        "high"
+    ).length;
 
-  const pendingIssues = issues.filter(
-    (issue) =>
-      issue.status?.toLowerCase() === "pending"
-  ).length;
+  const pendingIssues =
+    issues.filter(
+      (issue) =>
+        issue.status?.toLowerCase() ===
+        "pending"
+    ).length;
 
   const uniqueLocations = new Set(
     issues
@@ -116,7 +143,8 @@ function App() {
 
   const categoryCounts = issues.reduce(
     (counts, issue) => {
-      const category = issue.category || "other";
+      const category =
+        issue.category || "other";
 
       counts[category] =
         (counts[category] || 0) + 1;
@@ -127,230 +155,267 @@ function App() {
   );
 
   const latestIssue =
-    issues.length > 0 ? issues[0] : null;
+    issues.length > 0
+      ? issues[0]
+      : null;
+
+  // ==========================================
+  // GENERATE CIVIC COMPLAINT
+  // ==========================================
+
+  const handleGenerateComplaint =
+    async () => {
+      if (!aiResult) {
+        return;
+      }
+
+      setGeneratingComplaint(true);
+      setComplaintMessage("");
+      setComplaint(null);
+
+      try {
+        const params =
+          new URLSearchParams({
+            issue: aiResult.issue,
+            category: aiResult.category,
+            severity: aiResult.severity,
+            location:
+              location ||
+              "Location not provided",
+            explanation:
+              aiResult.explanation,
+          });
+
+        const response = await fetch(
+          `${API_URL}/generate-complaint?${params.toString()}`,
+          {
+            method: "POST",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Complaint generation failed"
+          );
+        }
+
+        const data =
+          await response.json();
+
+        if (
+          data.status !== "success" ||
+          !data.complaint
+        ) {
+          throw new Error(
+            data.message ||
+              "Complaint generation failed"
+          );
+        }
+
+        setComplaint(
+          data.complaint
+        );
+
+        setComplaintMessage(
+          "Complaint generated successfully."
+        );
+      } catch (error) {
+        console.error(
+          "Complaint generation error:",
+          error
+        );
+
+        setComplaintMessage(
+          "Unable to generate complaint. Please try again."
+        );
+      } finally {
+        setGeneratingComplaint(
+          false
+        );
+      }
+    };
 
   // ==========================================
   // PHOTO UPLOAD + AI ANALYSIS
   // ==========================================
 
-  const handlePhotoUpload = async (event) => {
-    event.preventDefault();
+  const handlePhotoUpload =
+    async (event) => {
+      event.preventDefault();
 
-    if (!selectedFile) {
-      setUploadMessage(
-        "Please select an image first."
-      );
-      return;
-    }
+      if (!selectedFile) {
+        setUploadMessage(
+          "Please select an image first."
+        );
+        return;
+      }
 
-    if (!location.trim()) {
-      setUploadMessage(
-        "Please enter the issue location."
-      );
-      return;
-    }
+      if (!location.trim()) {
+        setUploadMessage(
+          "Please enter the issue location."
+        );
+        return;
+      }
 
-    setUploading(true);
-    setUploadMessage("");
-    setAiResult(null);
+      setUploading(true);
+      setUploadMessage("");
+      setAiResult(null);
+      setComplaint(null);
+      setComplaintMessage("");
 
-    try {
-      // ======================================
-      // STEP 1: Upload photo
-      // ======================================
+      try {
+        // ======================================
+        // STEP 1: Upload photo
+        // ======================================
 
-      const formData = new FormData();
+        const formData =
+          new FormData();
 
-      formData.append("file", selectedFile);
+        formData.append(
+          "file",
+          selectedFile
+        );
 
-      const uploadResponse = await fetch(
-        `${API_URL}/upload-photo`,
-        {
-          method: "POST",
-          body: formData,
+        const uploadResponse =
+          await fetch(
+            `${API_URL}/upload-photo`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+        if (!uploadResponse.ok) {
+          throw new Error(
+            "Photo upload failed"
+          );
         }
-      );
 
-      if (!uploadResponse.ok) {
-        throw new Error(
-          "Photo upload failed"
+        const uploadData =
+          await uploadResponse.json();
+
+        console.log(
+          "Storage upload:",
+          uploadData
         );
-      }
 
-      const uploadData =
-        await uploadResponse.json();
-
-      console.log(
-        "Storage upload:",
-        uploadData
-      );
-
-      if (!uploadData.image_url) {
-        throw new Error(
-          "Image URL was not returned by the server"
-        );
-      }
-
-      setUploadMessage(
-        "Photo uploaded. AI is analyzing the image..."
-      );
-      const handleGenerateComplaint = async () => {
-  if (!aiResult) {
-    return;
-  }
-
-  setGeneratingComplaint(true);
-  setComplaintMessage("");
-  setComplaint(null);
-
-  try {
-    const params = new URLSearchParams({
-      issue: aiResult.issue,
-      category: aiResult.category,
-      severity: aiResult.severity,
-      location: location || "Location not provided",
-      explanation: aiResult.explanation,
-    });
-
-    const response = await fetch(
-      `${API_URL}/generate-complaint?${params.toString()}`,
-      {
-        method: "POST",
-      }
-    );
-
-    const data = await response.json();
-
-    if (data.status !== "success") {
-      throw new Error(
-        data.message || "Complaint generation failed"
-      );
-    }
-
-    setComplaint(data.complaint);
-    setComplaintMessage(
-      "Complaint generated successfully."
-    );
-  } catch (error) {
-    console.error(
-      "Complaint generation error:",
-      error
-    );
-
-    setComplaintMessage(
-      "Unable to generate complaint. Please try again."
-    );
-  } finally {
-    setGeneratingComplaint(false);
-  }
-};
-
-      // ======================================
-      // STEP 2: AI analysis
-      // ======================================
-
-      const analyzeResponse = await fetch(
-        `${API_URL}/analyze-image?image_url=${encodeURIComponent(
-          uploadData.image_url
-        )}&location=${encodeURIComponent(
-          location.trim()
-        )}`,
-        {
-          method: "POST",
+        if (!uploadData.image_url) {
+          throw new Error(
+            "Image URL was not returned by the server"
+          );
         }
-      );
 
-      if (!analyzeResponse.ok) {
-        throw new Error(
-          "AI analysis failed"
+        setUploadMessage(
+          "Photo uploaded. AI is analyzing the image..."
         );
+
+        // ======================================
+        // STEP 2: AI analysis
+        // ======================================
+
+        const analyzeResponse =
+          await fetch(
+            `${API_URL}/analyze-image?image_url=${encodeURIComponent(
+              uploadData.image_url
+            )}&location=${encodeURIComponent(
+              location.trim()
+            )}`,
+            {
+              method: "POST",
+            }
+          );
+
+        if (!analyzeResponse.ok) {
+          throw new Error(
+            "AI analysis failed"
+          );
+        }
+
+        const analyzeData =
+          await analyzeResponse.json();
+
+        console.log(
+          "AI analysis:",
+          analyzeData
+        );
+
+        // ======================================
+        // STEP 3: Show AI result
+        // ======================================
+
+        setAiResult(
+          analyzeData.analysis
+        );
+
+        setUploadMessage(
+          "Photo analyzed successfully by CivicAlert AI."
+        );
+
+        // ======================================
+        // STEP 4: Refresh issues
+        // ======================================
+
+        await fetchIssues();
+      } catch (error) {
+        console.error(
+          "CivicAlert AI error:",
+          error
+        );
+
+        setUploadMessage(
+          "Unable to analyze photo. Please try again."
+        );
+      } finally {
+        setUploading(false);
       }
-
-      const analyzeData =
-        await analyzeResponse.json();
-
-      console.log(
-        "AI analysis:",
-        analyzeData
-      );
-
-      // ======================================
-      // STEP 3: Show AI result
-      // ======================================
-
-      setAiResult(
-        analyzeData.analysis
-      );
-
-      setUploadMessage(
-        "Photo analyzed successfully by CivicAlert AI."
-      );
-
-      // ======================================
-      // STEP 4: Refresh issues
-      // ======================================
-
-      await fetchIssues();
-
-    } catch (error) {
-      console.error(
-        "CivicAlert AI error:",
-        error
-      );
-
-      setUploadMessage(
-        "Unable to analyze photo. Please try again."
-      );
-    } finally {
-      setUploading(false);
-    }
-  };
+    };
 
   // ==========================================
   // UPDATE ISSUE STATUS
   // ==========================================
 
-  const handleStatusChange = async (
-    issueId,
-    newStatus
-  ) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/issues/${issueId}/status?status=${encodeURIComponent(
-          newStatus
-        )}`,
-        {
-          method: "PATCH",
-        }
-      );
+  const handleStatusChange =
+    async (
+      issueId,
+      newStatus
+    ) => {
+      try {
+        const response =
+          await fetch(
+            `${API_URL}/issues/${issueId}/status?status=${encodeURIComponent(
+              newStatus
+            )}`,
+            {
+              method: "PATCH",
+            }
+          );
 
-      if (!response.ok) {
-        throw new Error(
-          "Failed to update issue status"
+        if (!response.ok) {
+          throw new Error(
+            "Failed to update issue status"
+          );
+        }
+
+        const data =
+          await response.json();
+
+        console.log(
+          "Status updated:",
+          data
+        );
+
+        await fetchIssues();
+      } catch (error) {
+        console.error(
+          "Status update error:",
+          error
+        );
+
+        alert(
+          "Unable to update issue status. Please try again."
         );
       }
-
-      const data =
-        await response.json();
-
-      console.log(
-        "Status updated:",
-        data
-      );
-
-      await fetchIssues();
-
-    } catch (error) {
-      console.error(
-        "Status update error:",
-        error
-      );
-
-      alert(
-        "Unable to update issue status. Please try again."
-      );
-    }
-  };
+    };
 
   // ==========================================
   // UI
@@ -366,10 +431,15 @@ function App() {
       <header className="topbar">
 
         <div className="brand">
-          <AlertTriangle size={28} />
+
+          <AlertTriangle
+            size={28}
+          />
+
           <span>
             CivicAlert AI
           </span>
+
         </div>
 
         <div className="topbar-subtitle">
@@ -393,11 +463,18 @@ function App() {
                 : "nav-item"
             }
             onClick={() =>
-              setActivePage("dashboard")
+              setActivePage(
+                "dashboard"
+              )
             }
           >
-            <LayoutDashboard size={20} />
+
+            <LayoutDashboard
+              size={20}
+            />
+
             Dashboard
+
           </button>
 
           <button
@@ -407,11 +484,18 @@ function App() {
                 : "nav-item"
             }
             onClick={() =>
-              setActivePage("report")
+              setActivePage(
+                "report"
+              )
             }
           >
-            <PlusCircle size={20} />
+
+            <PlusCircle
+              size={20}
+            />
+
             Report Issue
+
           </button>
 
           <button
@@ -421,11 +505,18 @@ function App() {
                 : "nav-item"
             }
             onClick={() =>
-              setActivePage("issues")
+              setActivePage(
+                "issues"
+              )
             }
           >
-            <FileText size={20} />
+
+            <FileText
+              size={20}
+            />
+
             Issues
+
           </button>
 
         </aside>
@@ -440,7 +531,8 @@ function App() {
               DASHBOARD
           ================================== */}
 
-          {activePage === "dashboard" && (
+          {activePage ===
+            "dashboard" && (
             <>
 
               <div className="page-header">
@@ -525,107 +617,164 @@ function App() {
               </div>
 
               {/* =================================
-    CATEGORY ANALYTICS
-================================= */}
+                  CATEGORY ANALYTICS
+              ================================= */}
 
-<section
-  className="content-card"
-  style={{
-    marginTop: "24px",
-  }}
->
-  <div className="card-header">
-    <div>
-      <h2>Issue Categories</h2>
-
-      <p>
-        Distribution of reported community issues
-      </p>
-    </div>
-  </div>
-
-  <div
-    style={{
-      marginTop: "20px",
-      display: "grid",
-      gap: "18px",
-    }}
-  >
-    {Object.entries(categoryCounts).map(
-      ([category, count]) => {
-        const percentage =
-          totalIssues > 0
-            ? Math.round(
-                (count / totalIssues) * 100
-              )
-            : 0;
-
-        return (
-          <div key={category}>
-            {/* Category name + count */}
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "8px",
-              }}
-            >
-              <span
+              <section
+                className="content-card"
                 style={{
-                  color: "#cbd5e1",
-                  fontWeight: "600",
-                  textTransform: "capitalize",
+                  marginTop:
+                    "24px",
                 }}
               >
-                {category}
-              </span>
 
-              <span
-                style={{
-                  color: "#94a3b8",
-                  fontSize: "14px",
-                }}
-              >
-                {count} issue
-                {count !== 1 ? "s" : ""} ·{" "}
-                {percentage}%
-              </span>
-            </div>
+                <div className="card-header">
 
-            {/* Progress bar */}
+                  <div>
 
-            <div
-              style={{
-                width: "100%",
-                height: "10px",
-                borderRadius: "999px",
-                background: "#1e293b",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: `${percentage}%`,
-                  height: "100%",
-                  borderRadius: "999px",
-                  background:
-                    "linear-gradient(90deg, #2563eb, #06b6d4)",
-                  transition:
-                    "width 0.5s ease",
-                }}
-              />
-            </div>
-          </div>
-        );
-      }
-    )}
-  </div>
-</section>
-                   
-              
-         
+                    <h2>
+                      Issue Categories
+                    </h2>
+
+                    <p>
+                      Distribution of reported
+                      community issues
+                    </p>
+
+                  </div>
+
+                </div>
+
+                <div
+                  style={{
+                    marginTop:
+                      "20px",
+                    display:
+                      "grid",
+                    gap:
+                      "18px",
+                  }}
+                >
+
+                  {Object.entries(
+                    categoryCounts
+                  ).map(
+                    ([
+                      category,
+                      count,
+                    ]) => {
+
+                      const percentage =
+                        totalIssues >
+                        0
+                          ? Math.round(
+                              (count /
+                                totalIssues) *
+                                100
+                            )
+                          : 0;
+
+                      return (
+                        <div
+                          key={
+                            category
+                          }
+                        >
+
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              justifyContent:
+                                "space-between",
+                              alignItems:
+                                "center",
+                              marginBottom:
+                                "8px",
+                            }}
+                          >
+
+                            <span
+                              style={{
+                                color:
+                                  "#cbd5e1",
+                                fontWeight:
+                                  "600",
+                                textTransform:
+                                  "capitalize",
+                              }}
+                            >
+                              {
+                                category
+                              }
+                            </span>
+
+                            <span
+                              style={{
+                                color:
+                                  "#94a3b8",
+                                fontSize:
+                                  "14px",
+                              }}
+                            >
+
+                              {
+                                count
+                              }{" "}
+                              issue
+                              {count !==
+                              1
+                                ? "s"
+                                : ""}{" "}
+                              ·{" "}
+                              {
+                                percentage
+                              }
+                              %
+
+                            </span>
+
+                          </div>
+
+                          <div
+                            style={{
+                              width:
+                                "100%",
+                              height:
+                                "10px",
+                              borderRadius:
+                                "999px",
+                              background:
+                                "#1e293b",
+                              overflow:
+                                "hidden",
+                            }}
+                          >
+
+                            <div
+                              style={{
+                                width: `${percentage}%`,
+                                height:
+                                  "100%",
+                                borderRadius:
+                                  "999px",
+                                background:
+                                  "linear-gradient(90deg, #2563eb, #06b6d4)",
+                                transition:
+                                  "width 0.5s ease",
+                              }}
+                            />
+
+                          </div>
+
+                        </div>
+                      );
+                    }
+                  )}
+
+                </div>
+
+              </section>
 
               {/* =================================
                   RECENT ISSUES
@@ -647,7 +796,9 @@ function App() {
 
                   </div>
 
-                  <MapPin size={22} />
+                  <MapPin
+                    size={22}
+                  />
 
                 </div>
 
@@ -657,11 +808,12 @@ function App() {
                   </p>
                 )}
 
-                {!loading && error && (
-                  <p>
-                    {error}
-                  </p>
-                )}
+                {!loading &&
+                  error && (
+                    <p>
+                      {error}
+                    </p>
+                  )}
 
                 {!loading &&
                   !error &&
@@ -680,7 +832,9 @@ function App() {
                       <div>
 
                         <h3>
-                          {latestIssue.title}
+                          {
+                            latestIssue.title
+                          }
                         </h3>
 
                         <p>
@@ -696,8 +850,10 @@ function App() {
                           ""
                         }`}
                       >
-                        {latestIssue.severity ||
-                          "Unknown"}
+                        {
+                          latestIssue.severity ||
+                          "Unknown"
+                        }
                       </span>
 
                     </div>
@@ -713,7 +869,8 @@ function App() {
               REPORT ISSUE
           ================================== */}
 
-          {activePage === "report" && (
+          {activePage ===
+            "report" && (
 
             <section className="content-card">
 
@@ -727,11 +884,16 @@ function App() {
               </p>
 
               <form
-                onSubmit={handlePhotoUpload}
+                onSubmit={
+                  handlePhotoUpload
+                }
                 style={{
-                  marginTop: "24px",
-                  display: "grid",
-                  gap: "18px",
+                  marginTop:
+                    "24px",
+                  display:
+                    "grid",
+                  gap:
+                    "18px",
                 }}
               >
 
@@ -748,21 +910,41 @@ function App() {
                     name="photo"
                     accept="image/*"
                     required
-                    onChange={(event) => {
+                    onChange={(
+                      event
+                    ) => {
 
                       setSelectedFile(
-                        event.target.files[0]
+                        event.target
+                          .files[0]
                       );
 
-                      setUploadMessage("");
-                      setAiResult(null);
+                      setUploadMessage(
+                        ""
+                      );
+
+                      setAiResult(
+                        null
+                      );
+
+                      setComplaint(
+                        null
+                      );
+
+                      setComplaintMessage(
+                        ""
+                      );
 
                     }}
                     style={{
-                      width: "100%",
-                      marginTop: "8px",
-                      padding: "12px",
-                      borderRadius: "8px",
+                      width:
+                        "100%",
+                      marginTop:
+                        "8px",
+                      padding:
+                        "12px",
+                      borderRadius:
+                        "8px",
                       border:
                         "1px solid #334155",
                       background:
@@ -778,12 +960,18 @@ function App() {
 
                   <p
                     style={{
-                      color: "#94a3b8",
-                      fontSize: "14px",
+                      color:
+                        "#94a3b8",
+                      fontSize:
+                        "14px",
                     }}
                   >
+
                     Selected:{" "}
-                    {selectedFile.name}
+                    {
+                      selectedFile.name
+                    }
+
                   </p>
 
                 )}
@@ -798,8 +986,10 @@ function App() {
 
                   <div
                     style={{
-                      position: "relative",
-                      marginTop: "8px",
+                      position:
+                        "relative",
+                      marginTop:
+                        "8px",
                     }}
                   >
 
@@ -808,8 +998,10 @@ function App() {
                       style={{
                         position:
                           "absolute",
-                        left: "12px",
-                        top: "50%",
+                        left:
+                          "12px",
+                        top:
+                          "50%",
                         transform:
                           "translateY(-50%)",
                         color:
@@ -820,23 +1012,32 @@ function App() {
                     <input
                       type="text"
                       name="location"
-                      value={location}
-                      onChange={(event) => {
+                      value={
+                        location
+                      }
+                      onChange={(
+                        event
+                      ) => {
 
                         setLocation(
-                          event.target.value
+                          event.target
+                            .value
                         );
 
-                        setUploadMessage("");
+                        setUploadMessage(
+                          ""
+                        );
 
                       }}
                       placeholder="Example: Main Road, Sahibganj"
                       required
                       style={{
-                        width: "100%",
+                        width:
+                          "100%",
                         padding:
                           "12px 12px 12px 40px",
-                        borderRadius: "8px",
+                        borderRadius:
+                          "8px",
                         border:
                           "1px solid #334155",
                         background:
@@ -854,12 +1055,16 @@ function App() {
 
                 <button
                   type="submit"
-                  disabled={uploading}
+                  disabled={
+                    uploading
+                  }
                   style={{
                     padding:
                       "13px 20px",
-                    border: "none",
-                    borderRadius: "9px",
+                    border:
+                      "none",
+                    borderRadius:
+                      "9px",
                     background:
                       "linear-gradient(135deg, #2563eb, #06b6d4)",
                     color:
@@ -895,20 +1100,27 @@ function App() {
                         "14px",
                     }}
                   >
-                    {uploadMessage}
+                    {
+                      uploadMessage
+                    }
                   </p>
 
                 )}
 
-                {/* AI RESULT */}
+                {/* ==================================
+                    AI RESULT
+                ================================== */}
 
                 {aiResult && (
 
                   <div
                     style={{
-                      marginTop: "10px",
-                      padding: "20px",
-                      borderRadius: "14px",
+                      marginTop:
+                        "10px",
+                      padding:
+                        "20px",
+                      borderRadius:
+                        "14px",
                       background:
                         "linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))",
                       border:
@@ -958,7 +1170,9 @@ function App() {
                           Issue:
                         </strong>{" "}
 
-                        {aiResult.issue}
+                        {
+                          aiResult.issue
+                        }
 
                       </p>
 
@@ -980,7 +1194,9 @@ function App() {
                           Category:
                         </strong>{" "}
 
-                        {aiResult.category}
+                        {
+                          aiResult.category
+                        }
 
                       </p>
 
@@ -1008,7 +1224,9 @@ function App() {
                             ""
                           }`}
                         >
-                          {aiResult.severity}
+                          {
+                            aiResult.severity
+                          }
                         </span>
 
                       </p>
@@ -1031,7 +1249,9 @@ function App() {
                           Location:
                         </strong>{" "}
 
-                        {location}
+                        {
+                          location
+                        }
 
                       </p>
 
@@ -1053,11 +1273,165 @@ function App() {
                           Explanation:
                         </strong>{" "}
 
-                        {aiResult.explanation}
+                        {
+                          aiResult.explanation
+                        }
 
                       </p>
 
                     </div>
+
+                  </div>
+
+                )}
+
+                {/* ==================================
+                    GENERATE COMPLAINT BUTTON
+                ================================== */}
+
+                {aiResult && (
+
+                  <button
+                    type="button"
+                    onClick={
+                      handleGenerateComplaint
+                    }
+                    disabled={
+                      generatingComplaint
+                    }
+                    style={{
+                      width:
+                        "100%",
+                      marginTop:
+                        "4px",
+                      padding:
+                        "14px 20px",
+                      border:
+                        "none",
+                      borderRadius:
+                        "10px",
+                      background:
+                        "linear-gradient(90deg, #2563eb, #06b6d4)",
+                      color:
+                        "#ffffff",
+                      fontSize:
+                        "16px",
+                      fontWeight:
+                        "700",
+                      cursor:
+                        generatingComplaint
+                          ? "not-allowed"
+                          : "pointer",
+                      opacity:
+                        generatingComplaint
+                          ? 0.7
+                          : 1,
+                    }}
+                  >
+
+                    {generatingComplaint
+                      ? "Generating Complaint..."
+                      : "Generate Complaint"}
+
+                  </button>
+
+                )}
+
+                {/* ==================================
+                    COMPLAINT MESSAGE
+                ================================== */}
+
+                {complaintMessage && (
+
+                  <p
+                    style={{
+                      color:
+                        "#67e8f9",
+                      fontSize:
+                        "14px",
+                    }}
+                  >
+                    {
+                      complaintMessage
+                    }
+                  </p>
+
+                )}
+
+                {/* ==================================
+                    GENERATED COMPLAINT
+                ================================== */}
+
+                {complaint && (
+
+                  <div
+                    style={{
+                      marginTop:
+                        "2px",
+                      padding:
+                        "20px",
+                      borderRadius:
+                        "14px",
+                      background:
+                        "linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))",
+                      border:
+                        "1px solid rgba(96, 165, 250, 0.25)",
+                      boxShadow:
+                        "0 12px 30px rgba(0, 0, 0, 0.2)",
+                    }}
+                  >
+
+                    <h2
+                      style={{
+                        fontSize:
+                          "20px",
+                        marginBottom:
+                          "18px",
+                        color:
+                          "#f8fafc",
+                      }}
+                    >
+                      Generated Civic Complaint
+                    </h2>
+
+                    <p
+                      style={{
+                        color:
+                          "#94a3b8",
+                        fontSize:
+                          "14px",
+                        marginBottom:
+                          "8px",
+                      }}
+                    >
+                      Subject
+                    </p>
+
+                    <h3
+                      style={{
+                        color:
+                          "#f8fafc",
+                        marginBottom:
+                          "20px",
+                      }}
+                    >
+                      {
+                        complaint.subject
+                      }
+                    </h3>
+
+                    <p
+                      style={{
+                        color:
+                          "#cbd5e1",
+                        lineHeight:
+                          "1.7",
+                      }}
+                    >
+                      {
+                        complaint.complaint
+                      }
+                    </p>
 
                   </div>
 
@@ -1068,86 +1442,13 @@ function App() {
             </section>
 
           )}
-          {aiResult && (
-  <button
-    type="button"
-    onClick={handleGenerateComplaint}
-    disabled={generatingComplaint}
-    style={{
-      width: "100%",
-      marginTop: "16px",
-      padding: "14px 20px",
-      border: "none",
-      borderRadius: "10px",
-      background:
-        "linear-gradient(90deg, #2563eb, #06b6d4)",
-      color: "white",
-      fontSize: "16px",
-      fontWeight: "700",
-      cursor: generatingComplaint
-        ? "not-allowed"
-        : "pointer",
-      opacity: generatingComplaint ? 0.7 : 1,
-    }}
-  >
-    {generatingComplaint
-      ? "Generating Complaint..."
-      : "Generate Complaint"}
-  </button>
-)}
-          {complaint && (
-  <div
-    className="content-card"
-    style={{
-      marginTop: "20px",
-    }}
-  >
-    <div className="card-header">
-      <div>
-        <h2>Generated Civic Complaint</h2>
-        <p>
-          AI-generated complaint ready for submission.
-        </p>
-      </div>
-    </div>
-
-    <div style={{ marginTop: "20px" }}>
-      <p
-        style={{
-          color: "#94a3b8",
-          fontSize: "14px",
-          marginBottom: "8px",
-        }}
-      >
-        Subject
-      </p>
-
-      <h3
-        style={{
-          color: "#f8fafc",
-          marginBottom: "20px",
-        }}
-      >
-        {complaint.subject}
-      </h3>
-
-      <p
-        style={{
-          color: "#cbd5e1",
-          lineHeight: "1.7",
-        }}
-      >
-        {complaint.complaint}
-      </p>
-    </div>
-  </div>
-)}
 
           {/* ==================================
               ISSUES PAGE
           ================================== */}
 
-          {activePage === "issues" && (
+          {activePage ===
+            "issues" && (
 
             <section className="content-card">
 
@@ -1164,26 +1465,38 @@ function App() {
 
               <div
                 style={{
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                  marginTop: "20px",
-                  marginBottom: "20px",
+                  display:
+                    "flex",
+                  gap:
+                    "12px",
+                  flexWrap:
+                    "wrap",
+                  marginTop:
+                    "20px",
+                  marginBottom:
+                    "20px",
                 }}
               >
 
                 <input
                   type="text"
                   placeholder="Search issues..."
-                  value={searchTerm}
-                  onChange={(event) =>
+                  value={
+                    searchTerm
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setSearchTerm(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   style={{
-                    flex: 1,
-                    minWidth: "220px",
+                    flex:
+                      1,
+                    minWidth:
+                      "220px",
                     padding:
                       "10px 12px",
                     borderRadius:
@@ -1200,10 +1513,15 @@ function App() {
                 {/* SEVERITY FILTER */}
 
                 <select
-                  value={severityFilter}
-                  onChange={(event) =>
+                  value={
+                    severityFilter
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setSeverityFilter(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   style={{
@@ -1241,10 +1559,15 @@ function App() {
                 {/* STATUS FILTER */}
 
                 <select
-                  value={statusFilter}
-                  onChange={(event) =>
+                  value={
+                    statusFilter
+                  }
+                  onChange={(
+                    event
+                  ) =>
                     setStatusFilter(
-                      event.target.value
+                      event.target
+                        .value
                     )
                   }
                   style={{
@@ -1281,14 +1604,18 @@ function App() {
 
               </div>
 
-              {/* ISSUE LIST */}
+              {/* ==================================
+                  ISSUE LIST
+              ================================== */}
 
               {!loading &&
-                issues.length > 0 && (
+                issues.length >
+                  0 && (
 
                   <div
                     style={{
-                      marginTop: "20px",
+                      marginTop:
+                        "20px",
                     }}
                   >
 
@@ -1297,7 +1624,9 @@ function App() {
 
                         <div
                           className="issue-row"
-                          key={issue.id}
+                          key={
+                            issue.id
+                          }
                           style={{
                             marginBottom:
                               "12px",
@@ -1308,17 +1637,22 @@ function App() {
 
                           <div
                             style={{
-                              flex: 1,
+                              flex:
+                                1,
                             }}
                           >
 
                             <h3>
-                              {issue.title}
+                              {
+                                issue.title
+                              }
                             </h3>
 
                             <p>
-                              {issue.location ||
-                                "Location not provided"}
+                              {
+                                issue.location ||
+                                "Location not provided"
+                              }
                             </p>
 
                             {issue.category && (
@@ -1330,7 +1664,9 @@ function App() {
                                 }}
                               >
                                 Category:{" "}
-                                {issue.category}
+                                {
+                                  issue.category
+                                }
                               </p>
 
                             )}
@@ -1345,8 +1681,10 @@ function App() {
                               Status:{" "}
 
                               <strong>
-                                {issue.status ||
-                                  "pending"}
+                                {
+                                  issue.status ||
+                                  "pending"
+                                }
                               </strong>
 
                             </p>
@@ -1374,8 +1712,10 @@ function App() {
                                 ""
                               }`}
                             >
-                              {issue.severity ||
-                                "Unknown"}
+                              {
+                                issue.severity ||
+                                "Unknown"
+                              }
                             </span>
 
                             {/* STATUS UPDATE */}
@@ -1385,10 +1725,14 @@ function App() {
                                 issue.status ||
                                 "pending"
                               }
-                              onChange={(event) =>
+                              onChange={(
+                                event
+                              ) =>
                                 handleStatusChange(
                                   issue.id,
-                                  event.target.value
+                                  event
+                                    .target
+                                    .value
                                 )
                               }
                               style={{
@@ -1435,7 +1779,8 @@ function App() {
               {/* NO ISSUES */}
 
               {!loading &&
-                issues.length === 0 && (
+                issues.length ===
+                  0 && (
 
                   <p
                     style={{
@@ -1451,8 +1796,10 @@ function App() {
               {/* NO FILTER RESULTS */}
 
               {!loading &&
-                issues.length > 0 &&
-                filteredIssues.length === 0 && (
+                issues.length >
+                  0 &&
+                filteredIssues.length ===
+                  0 && (
 
                   <p
                     style={{
