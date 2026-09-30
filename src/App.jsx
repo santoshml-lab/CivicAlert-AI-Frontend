@@ -950,7 +950,7 @@ setUploadMessage(
                     
                   
 
-                </div>
+                
 
                 {loading && (
                   <p>
