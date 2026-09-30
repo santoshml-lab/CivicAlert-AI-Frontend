@@ -308,29 +308,8 @@ function App() {
                     {loading ? "..." : totalIssues}
                   </strong>
                 </div>
-                <div
-  style={{
-    marginTop: "24px",
-    display: "flex",
-    gap: "12px",
-    flexWrap: "wrap",
-  }}
->
-  {Object.entries(categoryCounts).map(
-    ([category, count]) => (
-      <div
-        key={category}
-        className="stat-card"
-        style={{
-          minWidth: "160px",
-        }}
-      >
-        <span>{category}</span>
-        <strong>{count}</strong>
-      </div>
-    )
-  )}
-</div>
+                
+  
 
                 <div className="stat-card">
                   <span>High Severity</span>
