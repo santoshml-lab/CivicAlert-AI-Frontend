@@ -64,7 +64,11 @@ function App() {
     severityFilter === "all" ||
     issue.severity?.toLowerCase() === severityFilter;
 
-  return matchesSearch && matchesSeverity;
+  const matchesStatus =
+    statusFilter === "all" ||
+    issue.status?.toLowerCase() === statusFilter;
+
+  return matchesSearch && matchesSeverity && matchesStatus;
 });
 
   
