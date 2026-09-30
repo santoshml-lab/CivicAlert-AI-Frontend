@@ -1204,22 +1204,53 @@ setUploadMessage(
 
                 {/* MESSAGE */}
 
-                {uploadMessage && (
+{uploadMessage && (
 
-                  <p
-                    style={{
-                      color:
-                        "#67e8f9",
-                      fontSize:
-                        "14px",
-                    }}
-                  >
-                    {
-                      uploadMessage
-                    }
-                  </p>
+  <div
+    style={{
+      padding: "12px 14px",
+      borderRadius: "10px",
+      fontSize: "14px",
+      lineHeight: "1.5",
 
-                )}
+      background:
+        uploadMessageType === "error"
+          ? "rgba(239, 68, 68, 0.12)"
+          : uploadMessageType === "warning"
+          ? "rgba(245, 158, 11, 0.12)"
+          : uploadMessageType === "success"
+          ? "rgba(34, 197, 94, 0.12)"
+          : "rgba(96, 165, 250, 0.12)",
+
+      border:
+        uploadMessageType === "error"
+          ? "1px solid rgba(239, 68, 68, 0.25)"
+          : uploadMessageType === "warning"
+          ? "1px solid rgba(245, 158, 11, 0.25)"
+          : uploadMessageType === "success"
+          ? "1px solid rgba(34, 197, 94, 0.25)"
+          : "1px solid rgba(96, 165, 250, 0.25)",
+
+      color:
+        uploadMessageType === "error"
+          ? "#fca5a5"
+          : uploadMessageType === "warning"
+          ? "#fde68a"
+          : uploadMessageType === "success"
+          ? "#86efac"
+          : "#93c5fd",
+    }}
+  >
+    {uploadMessage}
+  </div>
+
+)}6
+
+                
+
+                  
+                    
+                      
 
                 {/* ==================================
                     AI RESULT
