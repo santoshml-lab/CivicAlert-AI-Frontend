@@ -162,6 +162,33 @@ function App() {
     }
   };
 
+  const handleStatusChange = async (issueId, newStatus) => {
+  try {
+    const response = await fetch(
+      `${API_URL}/issues/${issueId}/status?status=${encodeURIComponent(
+        newStatus
+      )}`,
+      {
+        method: "PATCH",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update issue status");
+    }
+
+    const data = await response.json();
+
+    console.log("Status updated:", data);
+
+    await fetchIssues();
+  } catch (error) {
+    console.error("Status update error:", error);
+
+    alert("Unable to update issue status. Please try again.");
+  }
+};
+
   return (
     <div className="app">
       {/* ================================
@@ -599,68 +626,106 @@ function App() {
           ================================ */}
 
           {activePage === "issues" && (
-            <section className="content-card">
-              <h1>Community Issues</h1>
+  <section className="content-card">
+    <h1>Community Issues</h1>
+
+    <p>
+      View reported issues and manage their current status.
+    </p>
+
+    {!loading && issues.length > 0 && (
+      <div style={{ marginTop: "20px" }}>
+        {issues.map((issue) => (
+          <div
+            className="issue-row"
+            key={issue.id}
+            style={{
+              marginBottom: "12px",
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ flex: 1 }}>
+              <h3>{issue.title}</h3>
 
               <p>
-                View reported issues and their current status.
+                {issue.location ||
+                  "Location not provided"}
               </p>
 
-              {!loading && issues.length > 0 && (
-                <div style={{ marginTop: "20px" }}>
-                  {issues.map((issue) => (
-                    <div
-                      className="issue-row"
-                      key={issue.id}
-                      style={{
-                        marginBottom: "12px",
-                      }}
-                    >
-                      <div>
-                        <h3>
-                          {issue.title}
-                        </h3>
-
-                        <p>
-                          {issue.location ||
-                            "Location not provided"}
-                        </p>
-
-                        {issue.category && (
-                          <p
-                            style={{
-                              marginTop: "5px",
-                            }}
-                          >
-                            Category: {issue.category}
-                          </p>
-                        )}
-                      </div>
-
-                      <span
-                        className={`severity ${
-                          issue.severity?.toLowerCase() || ""
-                        }`}
-                      >
-                        {issue.severity ||
-                          "Unknown"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {!loading && issues.length === 0 && (
-                <p
-                  style={{
-                    marginTop: "20px",
-                  }}
-                >
-                  No issues found.
+              {issue.category && (
+                <p style={{ marginTop: "5px" }}>
+                  Category: {issue.category}
                 </p>
               )}
-            </section>
-          )}
+
+              <p style={{ marginTop: "5px" }}>
+                Status:{" "}
+                <strong>
+                  {issue.status || "pending"}
+                </strong>
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "10px",
+              }}
+            >
+              <span
+                className={`severity ${
+                  issue.severity?.toLowerCase() || ""
+                }`}
+              >
+                {issue.severity || "Unknown"}
+              </span>
+
+              <select
+                value={issue.status || "pending"}
+                onChange={(event) =>
+                  handleStatusChange(
+                    issue.id,
+                    event.target.value
+                  )
+                }
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: "8px",
+                  border: "1px solid #334155",
+                  background: "#0f172a",
+                  color: "#f8fafc",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="pending">
+                  Pending
+                </option>
+
+                <option value="in progress">
+                  In Progress
+                </option>
+
+                <option value="resolved">
+                  Resolved
+                </option>
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {!loading && issues.length === 0 && (
+      <p style={{ marginTop: "20px" }}>
+        No issues found.
+      </p>
+    )}
+  </section>
+)}
+            
+                      
         </main>
       </div>
     </div>
