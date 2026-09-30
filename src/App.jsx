@@ -87,6 +87,13 @@ function App() {
   const uniqueLocations = new Set(
     issues.map((issue) => issue.location).filter(Boolean)
   ).size;
+  const categoryCounts = issues.reduce((counts, issue) => {
+  const category = issue.category || "other";
+
+  counts[category] = (counts[category] || 0) + 1;
+
+  return counts;
+}, {});
 
   const latestIssue = issues.length > 0 ? issues[0] : null;
 
