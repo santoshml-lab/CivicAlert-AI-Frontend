@@ -54,16 +54,20 @@ function App() {
   const filteredIssues = issues.filter((issue) => {
   const search = searchTerm.toLowerCase().trim();
 
-  if (!search) {
-    return true;
-  }
-
-  return (
+  const matchesSearch =
+    !search ||
     issue.title?.toLowerCase().includes(search) ||
     issue.location?.toLowerCase().includes(search) ||
-    issue.category?.toLowerCase().includes(search)
-  );
+    issue.category?.toLowerCase().includes(search);
+
+  const matchesSeverity =
+    severityFilter === "all" ||
+    issue.severity?.toLowerCase() === severityFilter;
+
+  return matchesSearch && matchesSeverity;
 });
+
+  
   
 
   const totalIssues = issues.length;
