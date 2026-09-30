@@ -74,3 +74,11 @@ Example:
 ```text
 Priority Score: 95/100
 Priority: HIGH
+
+Duplicate Issue Detection
+The platform checks existing community reports to identify potentially similar issues.
+Duplicate detection considers:
+Category
+Location similarity
+Issue title similarity
+This helps identify repeated reports of the same or similar civic problem.
