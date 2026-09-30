@@ -51,22 +51,8 @@ function App() {
     }
   };
 
-  const filteredIssues = issues.filter((issue) => {
-  const matchesSearch =
-    issue.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    issue.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    issue.category?.toLowerCase().includes(searchTerm.toLowerCase());
-
-  const matchesSeverity =
-    severityFilter === "all" ||
-    issue.severity?.toLowerCase() === severityFilter;
-
-  const matchesStatus =
-    statusFilter === "all" ||
-    issue.status?.toLowerCase() === statusFilter;
-
-  return matchesSearch && matchesSeverity && matchesStatus;
-});
+  const filteredIssues = issues;
+  
 
   const totalIssues = issues.length;
 
