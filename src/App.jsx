@@ -699,7 +699,7 @@ function App() {
   </select>
 </div>
 
-    {!loading && issues.length === 0 && (
+    {!loading && issues.length > 0 && (
       <div style={{ marginTop: "20px" }}>
         {issues.map((issue) => (
           <div
