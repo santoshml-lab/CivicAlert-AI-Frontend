@@ -898,17 +898,53 @@ setUploadMessage(
 
                 <div className="card-header">
 
-                  <div>
+  <div>
 
-                    <h2>
-                      Recent Community Issues
-                    </h2>
+    <h2>
+      Recent Community Issues
+    </h2>
 
-                    <p>
-                      Latest reported problems
-                    </p>
+    <p>
+      Latest reported problems
+    </p>
 
-                  </div>
+  </div>
+
+  <button
+    type="button"
+    onClick={() =>
+      setActivePage("issues")
+    }
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "9px 14px",
+      borderRadius: "8px",
+      border: "1px solid #334155",
+      background: "#0f172a",
+      color: "#cbd5e1",
+      fontSize: "14px",
+      fontWeight: "600",
+      cursor: "pointer",
+    }}
+  >
+    View All Issues
+  </button>
+
+</div>
+
+                  
+
+                    
+                      
+                    
+
+                    
+                      
+                    
+
+                  
 
                   <MapPin
                     size={22}
