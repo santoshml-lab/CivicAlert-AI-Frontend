@@ -431,7 +431,9 @@ if (
     "Duplicate check failed"
   );
 }
-
+        
+        
+setDuplicateResult(duplicateData);
 setUploadMessage(
   duplicateData.duplicate
     ? "Photo analyzed. Similar issue detected."
@@ -1489,6 +1491,150 @@ setUploadMessage(
       </strong>{" "}
       {priorityResult.reason}
     </p>
+  </div>
+)}
+                {/* ==================================
+    DUPLICATE INTELLIGENCE
+================================== */}
+
+{duplicateResult && (
+  <div
+    style={{
+      marginTop: "16px",
+      padding: "20px",
+      borderRadius: "14px",
+      background:
+        "linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95))",
+      border:
+        duplicateResult.duplicate
+          ? "1px solid rgba(245, 158, 11, 0.35)"
+          : "1px solid rgba(34, 197, 94, 0.25)",
+      boxShadow:
+        "0 12px 30px rgba(0, 0, 0, 0.2)",
+    }}
+  >
+    <h2
+      style={{
+        fontSize: "20px",
+        marginBottom: "12px",
+        color: "#f8fafc",
+      }}
+    >
+      {duplicateResult.duplicate
+        ? "⚠️ Similar Issue Detected"
+        : "✅ No Similar Issue Found"}
+    </h2>
+
+    <p
+      style={{
+        color: "#cbd5e1",
+        lineHeight: "1.7",
+        marginBottom: "16px",
+      }}
+    >
+      {duplicateResult.message}
+    </p>
+
+    {duplicateResult.duplicate && (
+      <div
+        style={{
+          display: "grid",
+          gap: "10px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
+          <span
+            style={{
+              color: "#94a3b8",
+            }}
+          >
+            Similar reports
+          </span>
+
+          <strong
+            style={{
+              color: "#f8fafc",
+            }}
+          >
+            {duplicateResult.count}
+          </strong>
+        </div>
+
+        {duplicateResult.similar_issues?.[0] && (
+          <div
+            style={{
+              marginTop: "8px",
+              padding: "14px",
+              borderRadius: "10px",
+              background:
+                "rgba(15, 23, 42, 0.7)",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                color: "#f8fafc",
+                fontWeight: "600",
+              }}
+            >
+              Existing Issue #
+              {duplicateResult.similar_issues[0].id}
+            </p>
+
+            <p
+              style={{
+                marginTop: "6px",
+                marginBottom: 0,
+                color: "#94a3b8",
+              }}
+            >
+              {
+                duplicateResult
+                  .similar_issues[0]
+                  .title
+              }
+            </p>
+
+            <p
+              style={{
+                marginTop: "6px",
+                marginBottom: 0,
+                color: "#94a3b8",
+              }}
+            >
+              Location:{" "}
+              {
+                duplicateResult
+                  .similar_issues[0]
+                  .location
+              }
+            </p>
+
+            <p
+              style={{
+                marginTop: "6px",
+                marginBottom: 0,
+                color: "#94a3b8",
+              }}
+            >
+              Status:{" "}
+              {
+                duplicateResult
+                  .similar_issues[0]
+                  .status
+              }
+            </p>
+          </div>
+        )}
+      </div>
+    )}
   </div>
 )}
 
