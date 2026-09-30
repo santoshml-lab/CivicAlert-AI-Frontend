@@ -653,6 +653,65 @@ function App() {
     <p>
       View reported issues and manage their current status.
     </p>
+    <div
+  style={{
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+    marginTop: "20px",
+    marginBottom: "20px",
+  }}
+>
+  <input
+    type="text"
+    placeholder="Search issues..."
+    value={searchTerm}
+    onChange={(event) => setSearchTerm(event.target.value)}
+    style={{
+      flex: 1,
+      minWidth: "220px",
+      padding: "10px 12px",
+      borderRadius: "8px",
+      border: "1px solid #334155",
+      background: "#0f172a",
+      color: "#f8fafc",
+    }}
+  />
+
+  <select
+    value={severityFilter}
+    onChange={(event) => setSeverityFilter(event.target.value)}
+    style={{
+      padding: "10px 12px",
+      borderRadius: "8px",
+      border: "1px solid #334155",
+      background: "#0f172a",
+      color: "#f8fafc",
+    }}
+  >
+    <option value="all">All Severity</option>
+    <option value="high">High</option>
+    <option value="medium">Medium</option>
+    <option value="low">Low</option>
+  </select>
+
+  <select
+    value={statusFilter}
+    onChange={(event) => setStatusFilter(event.target.value)}
+    style={{
+      padding: "10px 12px",
+      borderRadius: "8px",
+      border: "1px solid #334155",
+      background: "#0f172a",
+      color: "#f8fafc",
+    }}
+  >
+    <option value="all">All Status</option>
+    <option value="pending">Pending</option>
+    <option value="in progress">In Progress</option>
+    <option value="resolved">Resolved</option>
+  </select>
+</div>
 
     {!loading && issues.length > 0 && (
       <div style={{ marginTop: "20px" }}>
