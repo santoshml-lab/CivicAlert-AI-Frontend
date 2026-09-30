@@ -713,9 +713,9 @@ function App() {
   </select>
 </div>
 
-    {!loading && filteredIssues.length === 0 && (
+    {!loading && issues.length === 0 && (
       <div style={{ marginTop: "20px" }}>
-        {filteredIssues.map((issue) => (
+        {issues.map((issue) => (
           <div
             className="issue-row"
             key={issue.id}
