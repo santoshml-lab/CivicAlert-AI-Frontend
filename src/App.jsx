@@ -88,8 +88,10 @@ function App() {
       console.log("Upload response:", data);
 
       setUploadMessage(
-        `Photo received successfully: ${data.filename}`
-      );
+      "Photo uploaded to Supabase Storage successfully."
+);
+        
+      
     } catch (error) {
       console.error("Photo upload error:", error);
 
