@@ -51,7 +51,19 @@ function App() {
     }
   };
 
-  const filteredIssues = issues;
+  const filteredIssues = issues.filter((issue) => {
+  const search = searchTerm.toLowerCase().trim();
+
+  if (!search) {
+    return true;
+  }
+
+  return (
+    issue.title?.toLowerCase().includes(search) ||
+    issue.location?.toLowerCase().includes(search) ||
+    issue.category?.toLowerCase().includes(search)
+  );
+});
   
 
   const totalIssues = issues.length;
@@ -701,7 +713,7 @@ function App() {
 
     {!loading && issues.length > 0 && (
       <div style={{ marginTop: "20px" }}>
-        {issues.map((issue) => (
+        {filteredIssues.map((issue) => (
           <div
             className="issue-row"
             key={issue.id}
