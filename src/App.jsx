@@ -946,9 +946,9 @@ setUploadMessage(
 
                   
 
-                  <MapPin
-                    size={22}
-                  />
+                  
+                    
+                  
 
                 </div>
 
