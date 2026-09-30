@@ -1068,6 +1068,80 @@ function App() {
             </section>
 
           )}
+          {aiResult && (
+  <button
+    type="button"
+    onClick={handleGenerateComplaint}
+    disabled={generatingComplaint}
+    style={{
+      width: "100%",
+      marginTop: "16px",
+      padding: "14px 20px",
+      border: "none",
+      borderRadius: "10px",
+      background:
+        "linear-gradient(90deg, #2563eb, #06b6d4)",
+      color: "white",
+      fontSize: "16px",
+      fontWeight: "700",
+      cursor: generatingComplaint
+        ? "not-allowed"
+        : "pointer",
+      opacity: generatingComplaint ? 0.7 : 1,
+    }}
+  >
+    {generatingComplaint
+      ? "Generating Complaint..."
+      : "Generate Complaint"}
+  </button>
+)}
+          {complaint && (
+  <div
+    className="content-card"
+    style={{
+      marginTop: "20px",
+    }}
+  >
+    <div className="card-header">
+      <div>
+        <h2>Generated Civic Complaint</h2>
+        <p>
+          AI-generated complaint ready for submission.
+        </p>
+      </div>
+    </div>
+
+    <div style={{ marginTop: "20px" }}>
+      <p
+        style={{
+          color: "#94a3b8",
+          fontSize: "14px",
+          marginBottom: "8px",
+        }}
+      >
+        Subject
+      </p>
+
+      <h3
+        style={{
+          color: "#f8fafc",
+          marginBottom: "20px",
+        }}
+      >
+        {complaint.subject}
+      </h3>
+
+      <p
+        style={{
+          color: "#cbd5e1",
+          lineHeight: "1.7",
+        }}
+      >
+        {complaint.complaint}
+      </p>
+    </div>
+  </div>
+)}
 
           {/* ==================================
               ISSUES PAGE
